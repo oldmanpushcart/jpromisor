@@ -125,11 +125,6 @@ abstract class FutureImpl<V> implements ListenableFuture<V> {
         return this;
     }
 
-    @Override
-    public boolean cancel(boolean mayInterruptIfRunning) {
-        return false;
-    }
-
 
     @SuppressWarnings("unchecked")
     private V _get(StateResult result) throws ExecutionException {

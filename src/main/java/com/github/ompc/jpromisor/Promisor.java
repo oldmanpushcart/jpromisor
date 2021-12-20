@@ -2,6 +2,7 @@ package com.github.ompc.jpromisor;
 
 import com.github.ompc.jpromisor.impl.PromiseImpl;
 
+import java.lang.reflect.Proxy;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 
@@ -18,6 +19,14 @@ public class Promisor {
      */
     public static <V> Promise<V> promise() {
         return new PromiseImpl<>();
+    }
+
+    public static ListenableFuture<Void> fulfill(Executor executor, Executable executable) {
+        return fulfill(executor, (Callable<Void>)executable);
+    }
+
+    public static ListenableFuture<Void> fulfill(Promise<Void> promise, Executor executor, Executable executable) {
+        return fulfill(promise, executor, (Callable<Void>)executable);
     }
 
     /**
@@ -48,6 +57,9 @@ public class Promisor {
             }
             try {
                 promise.trySuccess(callable.call());
+            } catch (InterruptedException cause) {
+                promise.tryCancel();
+                Thread.currentThread().interrupt();
             } catch (Throwable cause) {
                 promise.tryException(cause);
             }

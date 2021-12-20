@@ -151,6 +151,11 @@ class ListenableFutureImpl<V> extends FutureImpl<V> {
     }
 
     @Override
+    public boolean cancel(boolean mayInterruptIfRunning) {
+        return tryCancel();
+    }
+
+    @Override
     boolean tryCancel() {
         if (super.tryCancel()) {
             notify(null);

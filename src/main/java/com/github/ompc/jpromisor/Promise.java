@@ -1,5 +1,7 @@
 package com.github.ompc.jpromisor;
 
+import java.util.concurrent.Callable;
+
 /**
  * 承诺
  *

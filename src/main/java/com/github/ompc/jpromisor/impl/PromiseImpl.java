@@ -2,6 +2,8 @@ package com.github.ompc.jpromisor.impl;
 
 import com.github.ompc.jpromisor.Promise;
 
+import java.util.concurrent.Callable;
+
 public class PromiseImpl<V> extends ListenableFutureImpl<V> implements Promise<V> {
 
     @Override
