@@ -1,6 +1,8 @@
 package com.github.ompc.jpromisor;
 
-import java.util.concurrent.Callable;
+import com.github.ompc.jpromisor.FutureFunction.FutureCallable;
+
+import java.util.concurrent.Executor;
 
 /**
  * 承诺
@@ -29,7 +31,7 @@ public interface Promise<V> extends ListenableFuture<V> {
      * @param cause 失败原因
      * @return TRUE | FALSE
      */
-    boolean tryException(Throwable cause);
+    boolean tryException(Exception cause);
 
     /**
      * 尝试成功
@@ -45,5 +47,14 @@ public interface Promise<V> extends ListenableFuture<V> {
      * @return TRUE | FALSE
      */
     boolean trySuccess();
+
+    /**
+     * 履约
+     *
+     * @param executor 执行器
+     * @param fn       履约函数
+     * @return 凭证
+     */
+    ListenableFuture<V> fulfill(Executor executor, FutureCallable<V> fn);
 
 }

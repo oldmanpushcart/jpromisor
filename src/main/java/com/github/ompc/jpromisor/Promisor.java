@@ -1,9 +1,10 @@
 package com.github.ompc.jpromisor;
 
+import com.github.ompc.jpromisor.FutureFunction.FutureCallable;
+import com.github.ompc.jpromisor.FutureFunction.FutureConsumer;
+import com.github.ompc.jpromisor.FutureFunction.FutureExecutable;
 import com.github.ompc.jpromisor.impl.PromiseImpl;
 
-import java.lang.reflect.Proxy;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 
 /**
@@ -21,51 +22,43 @@ public class Promisor {
         return new PromiseImpl<>();
     }
 
-    public static ListenableFuture<Void> fulfill(Executor executor, Executable executable) {
-        return fulfill(executor, (Callable<Void>)executable);
-    }
-
-    public static ListenableFuture<Void> fulfill(Promise<Void> promise, Executor executor, Executable executable) {
-        return fulfill(promise, executor, (Callable<Void>)executable);
+    /**
+     * 创建承诺
+     *
+     * @param fn  承诺函数
+     * @param <V> 类型
+     * @return 承诺
+     */
+    public static <V> Promise<V> promise(FutureConsumer<Promise<V>> fn) {
+        final Promise<V> promise = promise();
+        return promise(promise, () -> fn.accept(promise));
     }
 
     /**
-     * 履约承诺
+     * 创建承诺
      *
-     * @param executor 执行器
-     * @param callable 履约
-     * @param <V>      类型
-     * @return 凭证
+     * @param promise 承诺
+     * @param fn      承诺函数
+     * @param <V>     类型
+     * @return 承诺
      */
-    public static <V> ListenableFuture<V> fulfill(Executor executor, Callable<V> callable) {
-        return fulfill(promise(), executor, callable);
-    }
-
-    /**
-     * 履约承诺
-     *
-     * @param promise  承诺
-     * @param executor 执行器
-     * @param callable 履约
-     * @param <V>      类型
-     * @return 凭证
-     */
-    public static <V> ListenableFuture<V> fulfill(Promise<V> promise, Executor executor, Callable<V> callable) {
-        executor.execute(() -> {
-            if (promise.isDone()) {
-                return;
+    public static <V> Promise<V> promise(Promise<V> promise, FutureExecutable fn) {
+        try {
+            if (!promise.isDone()) {
+                fn.execute();
             }
-            try {
-                promise.trySuccess(callable.call());
-            } catch (InterruptedException cause) {
-                promise.tryCancel();
-                Thread.currentThread().interrupt();
-            } catch (Throwable cause) {
-                promise.tryException(cause);
-            }
-        });
+        } catch (Exception cause) {
+            promise.tryException(cause);
+        }
         return promise;
     }
 
+    public static ListenableFuture<Void> fulfill(Executor executor, FutureExecutable fn) {
+        return Promisor.<Void>promise().fulfill(executor, fn);
+    }
+
+    public static <V> ListenableFuture<V> fulfill(Executor executor, FutureCallable<V> fn) {
+        return Promisor.<V>promise().fulfill(executor, fn);
+    }
 
 }

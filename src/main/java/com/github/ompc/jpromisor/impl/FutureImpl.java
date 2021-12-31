@@ -1,15 +1,12 @@
 package com.github.ompc.jpromisor.impl;
 
 import com.github.ompc.jpromisor.ListenableFuture;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 abstract class FutureImpl<V> implements ListenableFuture<V> {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final AtomicReference<StateResult> resultRef = new AtomicReference<>();
     private final CountDownLatch latch = new CountDownLatch(1);
 
@@ -61,9 +58,9 @@ abstract class FutureImpl<V> implements ListenableFuture<V> {
     }
 
     @Override
-    public Throwable getException() {
+    public Exception getException() {
         final StateResult result = resultRef.get();
-        return _isFailure(result) ? (Throwable) result.value : null;
+        return _isFailure(result) ? (Exception) result.value : null;
     }
 
     @SuppressWarnings("unchecked")
@@ -129,7 +126,7 @@ abstract class FutureImpl<V> implements ListenableFuture<V> {
     @SuppressWarnings("unchecked")
     private V _get(StateResult result) throws ExecutionException {
         if (_isException(result)) {
-            throw new ExecutionException((Throwable) result.value);
+            throw new ExecutionException((Exception) result.value);
         }
         if (_isCancelled(result)) {
             throw (CancellationException) result.value;
@@ -167,10 +164,6 @@ abstract class FutureImpl<V> implements ListenableFuture<V> {
             return true;
         }
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("{} try cancel but failure, state already: {} ", this, resultRef.get().state);
-        }
-
         return false;
     }
 
@@ -180,21 +173,11 @@ abstract class FutureImpl<V> implements ListenableFuture<V> {
      * @param cause 异常原因
      * @return TRUE | FALSE
      */
-    boolean tryException(Throwable cause) {
+    boolean tryException(Exception cause) {
         final StateResult result = new StateResult(State.EXCEPTION, cause);
         if (resultRef.compareAndSet(null, result)) {
             latch.countDown();
             return true;
-        }
-
-        // TRACE
-        if (logger.isTraceEnabled()) {
-            logger.trace("{} try exception but failure, state already: {}", this, resultRef.get().state, cause);
-        }
-
-        // DEBUG
-        else if (logger.isDebugEnabled()) {
-            logger.debug("{} try exception but failure, state already: {} ", this, resultRef.get().state);
         }
 
         return false;
@@ -211,10 +194,6 @@ abstract class FutureImpl<V> implements ListenableFuture<V> {
         if (resultRef.compareAndSet(null, result)) {
             latch.countDown();
             return true;
-        }
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("{} try success but failure, state already: {} ", this, resultRef.get().state);
         }
 
         return false;

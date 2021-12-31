@@ -1,8 +1,10 @@
 package com.github.ompc.jpromisor.impl;
 
+import com.github.ompc.jpromisor.FutureFunction.FutureCallable;
+import com.github.ompc.jpromisor.ListenableFuture;
 import com.github.ompc.jpromisor.Promise;
 
-import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
 
 public class PromiseImpl<V> extends ListenableFutureImpl<V> implements Promise<V> {
 
@@ -17,7 +19,7 @@ public class PromiseImpl<V> extends ListenableFutureImpl<V> implements Promise<V
     }
 
     @Override
-    public boolean tryException(Throwable cause) {
+    public boolean tryException(Exception cause) {
         return super.tryException(cause);
     }
 
@@ -29,6 +31,24 @@ public class PromiseImpl<V> extends ListenableFutureImpl<V> implements Promise<V
     @Override
     public boolean trySuccess() {
         return super.trySuccess(null);
+    }
+
+    @Override
+    public ListenableFuture<V> fulfill(Executor executor, FutureCallable<V> callable) {
+        executor.execute(() -> {
+            if (isDone()) {
+                return;
+            }
+            try {
+                trySuccess(callable.call());
+            } catch (InterruptedException cause) {
+                tryCancel();
+                Thread.currentThread().interrupt();
+            } catch (Exception cause) {
+                tryException(cause);
+            }
+        });
+        return this;
     }
 
 }

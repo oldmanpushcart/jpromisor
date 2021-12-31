@@ -1,5 +1,7 @@
 package com.github.ompc.jpromisor;
 
+import com.github.ompc.jpromisor.FutureFunction.FutureConsumer;
+
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -98,7 +100,7 @@ public interface ListenableFuture<V> extends Future<V> {
      *
      * @return 异常
      */
-    Throwable getException();
+    Exception getException();
 
     /**
      * 获取返回值
@@ -307,15 +309,44 @@ public interface ListenableFuture<V> extends Future<V> {
      */
     ListenableFuture<V> awaitUninterruptible();
 
-    /**
-     * 然后，常用于ThingFuture的类型转换
-     *
-     * @param then 值转换器
-     * @param <T>  转换后新类型
-     * @return 然后凭证
-     */
-    <T> ListenableFuture<T> then(Then<V, T> then);
 
-    <T> ListenableFuture<T> then(Executor executor, Then<V, T> then);
+    /**
+     * 成功接力
+     *
+     * @param fn  接力函数
+     * @param <T> 接力凭证类型
+     * @return 接力凭证
+     */
+    <T> ListenableFuture<T> resolved(FutureFunction<V, T> fn);
+
+    /**
+     * 成功接力
+     *
+     * @param executor 执行器
+     * @param fn       接力函数
+     * @param <T>      接力凭证类型
+     * @return 接力凭证
+     */
+    <T> ListenableFuture<T> resolved(Executor executor, FutureFunction<V, T> fn);
+
+    /**
+     * 异常接力
+     *
+     * @param fn 接力函数
+     * @return 接力凭证
+     */
+    ListenableFuture<V> rejected(FutureConsumer<Exception> fn);
+
+    /**
+     * 异常接力
+     *
+     * @param executor 执行器
+     * @param fn       接力函数
+     * @return 接力凭证
+     */
+    ListenableFuture<V> rejected(Executor executor, FutureConsumer<Exception> fn);
+
+    ListenableFuture<V> rejected(FutureFunction<Exception, V> fn);
+    ListenableFuture<V> rejected(Executor executor, FutureFunction<Exception, V> fn);
 
 }

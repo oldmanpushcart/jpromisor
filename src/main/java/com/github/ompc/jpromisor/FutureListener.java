@@ -59,7 +59,7 @@ public interface FutureListener<V> {
          *
          * @param cause 错误
          */
-        void onFailure(Throwable cause);
+        void onFailure(Exception cause);
 
     }
 

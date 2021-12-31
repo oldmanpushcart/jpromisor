@@ -1,11 +1,9 @@
 package com.github.ompc.jpromisor.impl;
 
+import com.github.ompc.jpromisor.FutureFunction;
+import com.github.ompc.jpromisor.FutureFunction.FutureConsumer;
 import com.github.ompc.jpromisor.FutureListener;
 import com.github.ompc.jpromisor.ListenableFuture;
-import com.github.ompc.jpromisor.Promise;
-import com.github.ompc.jpromisor.Then;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,9 +11,7 @@ import java.util.concurrent.Executor;
 
 class ListenableFutureImpl<V> extends FutureImpl<V> {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-
-    private final Executor self = Runnable::run;
+    private static final Executor self = Runnable::run;
 
     /*
      * 等待通知集合
@@ -75,16 +71,7 @@ class ListenableFutureImpl<V> extends FutureImpl<V> {
     public ListenableFuture<V> appendListener(Executor executor, FutureListener<V> listener) {
 
         // 将监听器封装为异步执行
-        final FutureListener<V> wrap = future -> executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    listener.onDone(ListenableFutureImpl.this);
-                } catch (Throwable cause) {
-                    logger.warn("{} notify listener error!", this, cause);
-                }
-            }
-        });
+        final FutureListener<V> wrap = future -> executor.execute(() -> listener.onDone(this));
 
         // 如若从未进行过通知，则将监听器加入到等待通知集合
         if (!notified) {
@@ -110,33 +97,36 @@ class ListenableFutureImpl<V> extends FutureImpl<V> {
     }
 
     @Override
-    public <T> ListenableFuture<T> then(Then<V, T> then) {
-        return then(self, then);
+    public <T> ListenableFuture<T> resolved(FutureFunction<V, T> fn) {
+        return resolved(self, fn);
     }
 
     @Override
-    public <T> ListenableFuture<T> then(Executor executor, Then<V, T> then) {
-        final Promise<T> thenP = new PromiseImpl<>();
+    public <T> ListenableFuture<T> resolved(Executor executor, FutureFunction<V, T> fn) {
+        final ListenableFutureImpl<T> thenF = new ListenableFutureImpl<>();
 
         // 监听器挂钩
         onDone(executor, future -> {
 
             // exception
             if (future.isException()) {
-                thenP.tryException(future.getException());
+                thenF.tryException(future.getException());
             }
 
             // cancelled
             else if (future.isCancelled()) {
-                thenP.tryCancel();
+                thenF.tryCancel();
             }
 
             // success
             else if (future.isSuccess()) {
                 try {
-                    thenP.trySuccess(then.then(getSuccess()));
+                    thenF.trySuccess(fn.apply(getSuccess()));
+                } catch (InterruptedException cause) {
+                    thenF.tryCancel();
+                    Thread.currentThread().interrupt();
                 } catch (Exception cause) {
-                    thenP.tryException(cause);
+                    thenF.tryException(cause);
                 }
             }
 
@@ -147,8 +137,106 @@ class ListenableFutureImpl<V> extends FutureImpl<V> {
 
         });
 
-        return thenP;
+        return thenF;
     }
+
+    @Override
+    public ListenableFuture<V> rejected(FutureConsumer<Exception> fn) {
+        return rejected(self, fn);
+    }
+
+    @Override
+    public ListenableFuture<V> rejected(Executor executor, FutureConsumer<Exception> fn) {
+        final ListenableFutureImpl<V> thenF = new ListenableFutureImpl<>();
+
+        // 监听器挂钩
+        onDone(executor, future -> {
+
+            // exception
+            if (future.isException()) {
+                try {
+                    fn.accept(future.getException());
+                    thenF.trySuccess(null);
+                } catch (InterruptedException cause) {
+                    thenF.tryCancel();
+                    Thread.currentThread().interrupt();
+                } catch (Exception cause) {
+                    thenF.tryException(cause);
+                }
+            }
+
+            // cancelled
+            else if (future.isCancelled()) {
+                thenF.tryCancel();
+            }
+
+            // success
+            else if (future.isSuccess()) {
+                try {
+                    thenF.trySuccess(getSuccess());
+                } catch (Exception cause) {
+                    thenF.tryException(cause);
+                }
+            }
+
+            // other
+            else {
+                throw new IllegalStateException();
+            }
+
+        });
+
+        return thenF;
+    }
+
+    @Override
+    public ListenableFuture<V> rejected(FutureFunction<Exception, V> fn) {
+        return rejected(self, fn);
+    }
+
+    @Override
+    public ListenableFuture<V> rejected(Executor executor, FutureFunction<Exception, V> fn) {
+        final ListenableFutureImpl<V> thenF = new ListenableFutureImpl<>();
+
+        // 监听器挂钩
+        onDone(executor, future -> {
+
+            // exception
+            if (future.isException()) {
+                try {
+                    thenF.trySuccess(fn.apply(future.getException()));
+                } catch (InterruptedException cause) {
+                    thenF.tryCancel();
+                    Thread.currentThread().interrupt();
+                } catch (Exception cause) {
+                    thenF.tryException(cause);
+                }
+            }
+
+            // cancelled
+            else if (future.isCancelled()) {
+                thenF.tryCancel();
+            }
+
+            // success
+            else if (future.isSuccess()) {
+                try {
+                    thenF.trySuccess(getSuccess());
+                } catch (Exception cause) {
+                    thenF.tryException(cause);
+                }
+            }
+
+            // other
+            else {
+                throw new IllegalStateException();
+            }
+
+        });
+
+        return thenF;
+    }
+
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
@@ -165,7 +253,7 @@ class ListenableFutureImpl<V> extends FutureImpl<V> {
     }
 
     @Override
-    boolean tryException(Throwable cause) {
+    boolean tryException(Exception cause) {
         if (super.tryException(cause)) {
             notify(null);
             return true;
