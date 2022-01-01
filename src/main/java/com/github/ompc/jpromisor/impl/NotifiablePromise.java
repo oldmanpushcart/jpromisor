@@ -6,7 +6,12 @@ import com.github.ompc.jpromisor.Promise;
 
 import java.util.concurrent.Executor;
 
-public class PromiseImpl<V> extends ListenableFutureImpl<V> implements Promise<V> {
+/**
+ * 可通知承诺
+ *
+ * @param <V> 类型
+ */
+public class NotifiablePromise<V> extends NotifiableFuture<V> implements Promise<V> {
 
     @Override
     public Promise<V> self() {

@@ -3,7 +3,7 @@ package com.github.ompc.jpromisor;
 import com.github.ompc.jpromisor.FutureFunction.FutureCallable;
 import com.github.ompc.jpromisor.FutureFunction.FutureConsumer;
 import com.github.ompc.jpromisor.FutureFunction.FutureExecutable;
-import com.github.ompc.jpromisor.impl.PromiseImpl;
+import com.github.ompc.jpromisor.impl.NotifiablePromise;
 
 import java.util.concurrent.Executor;
 
@@ -19,7 +19,7 @@ public class Promisor {
      * @return 承诺
      */
     public static <V> Promise<V> promise() {
-        return new PromiseImpl<>();
+        return new NotifiablePromise<>();
     }
 
     /**

@@ -110,6 +110,40 @@ public interface ListenableFuture<V> extends Future<V> {
     V getSuccess();
 
     /**
+     * 同步等待结果
+     *
+     * @return this
+     * @throws InterruptedException  等待过程被中断
+     * @throws ExecutionException    结果为异常
+     * @throws CancellationException 结果为取消
+     */
+    ListenableFuture<V> sync() throws InterruptedException, ExecutionException, CancellationException;
+
+    /**
+     * 同步等待结果，等待过程被中断后不会抛出异常，将继续往下执行
+     *
+     * @return this
+     * @throws ExecutionException    结果为异常
+     * @throws CancellationException 结果为取消
+     */
+    ListenableFuture<V> syncUninterruptible() throws ExecutionException, CancellationException;
+
+    /**
+     * 阻塞并等待完成
+     *
+     * @return this
+     * @throws InterruptedException 等待过程被中断
+     */
+    ListenableFuture<V> await() throws InterruptedException;
+
+    /**
+     * 阻塞并等待完成，等待过程被中断后不会抛出异常，将继续往下执行
+     *
+     * @return this
+     */
+    ListenableFuture<V> awaitUninterruptible();
+
+    /**
      * 添加监听器
      * <p>
      * {@link #isDone()} == true 的时候触发
@@ -275,40 +309,6 @@ public interface ListenableFuture<V> extends Future<V> {
      */
     ListenableFuture<V> removeListener(FutureListener<V> listener);
 
-    /**
-     * 同步等待结果
-     *
-     * @return this
-     * @throws InterruptedException  等待过程被中断
-     * @throws ExecutionException    结果为异常
-     * @throws CancellationException 结果为取消
-     */
-    ListenableFuture<V> sync() throws InterruptedException, ExecutionException, CancellationException;
-
-    /**
-     * 同步等待结果，等待过程被中断后不会抛出异常，将继续往下执行
-     *
-     * @return this
-     * @throws ExecutionException    结果为异常
-     * @throws CancellationException 结果为取消
-     */
-    ListenableFuture<V> syncUninterruptible() throws ExecutionException, CancellationException;
-
-    /**
-     * 阻塞并等待完成
-     *
-     * @return this
-     * @throws InterruptedException 等待过程被中断
-     */
-    ListenableFuture<V> await() throws InterruptedException;
-
-    /**
-     * 阻塞并等待完成，等待过程被中断后不会抛出异常，将继续往下执行
-     *
-     * @return this
-     */
-    ListenableFuture<V> awaitUninterruptible();
-
 
     /**
      * 成功接力
@@ -346,7 +346,21 @@ public interface ListenableFuture<V> extends Future<V> {
      */
     ListenableFuture<V> rejected(Executor executor, FutureConsumer<Exception> fn);
 
+    /**
+     * 异常接力
+     *
+     * @param fn 接力函数
+     * @return 接力凭证
+     */
     ListenableFuture<V> rejected(FutureFunction<Exception, V> fn);
+
+    /**
+     * 异常接力
+     *
+     * @param executor 执行器
+     * @param fn       接力函数
+     * @return 接力凭证
+     */
     ListenableFuture<V> rejected(Executor executor, FutureFunction<Exception, V> fn);
 
 }
