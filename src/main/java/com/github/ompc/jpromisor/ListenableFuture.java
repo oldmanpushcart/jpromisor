@@ -309,7 +309,6 @@ public interface ListenableFuture<V> extends Future<V> {
      */
     ListenableFuture<V> removeListener(FutureListener<V> listener);
 
-
     /**
      * 成功接力
      *

@@ -92,6 +92,7 @@ public interface FutureListener<V> {
      */
     @FunctionalInterface
     interface OnException<V> extends FutureListener<V> {
+
         @Override
         default void onDone(ListenableFuture<V> future) {
             if (future.isException()) {
@@ -115,7 +116,6 @@ public interface FutureListener<V> {
      */
     @FunctionalInterface
     interface OnDone<V> extends FutureListener<V> {
-
 
     }
 
