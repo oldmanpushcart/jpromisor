@@ -95,7 +95,7 @@ public interface FutureListener<V> {
         @Override
         default void onDone(ListenableFuture<V> future) {
             if (future.isException()) {
-                onException(future);
+                onException(future.getException());
             }
         }
 
@@ -104,7 +104,7 @@ public interface FutureListener<V> {
          *
          * @param future 凭证
          */
-        void onException(ListenableFuture<V> future);
+        void onException(Exception future);
 
     }
 

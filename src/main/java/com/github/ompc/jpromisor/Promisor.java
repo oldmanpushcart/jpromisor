@@ -13,7 +13,7 @@ import java.util.concurrent.Executor;
 public class Promisor {
 
     /**
-     * 创建承诺
+     * 承诺
      *
      * @param <V> 类型
      * @return 承诺
@@ -23,7 +23,7 @@ public class Promisor {
     }
 
     /**
-     * 创建承诺
+     * 承诺
      *
      * @param fn  承诺函数
      * @param <V> 类型
@@ -35,7 +35,7 @@ public class Promisor {
     }
 
     /**
-     * 创建承诺
+     * 承诺
      *
      * @param promise 承诺
      * @param fn      承诺函数
@@ -53,11 +53,26 @@ public class Promisor {
         return promise;
     }
 
-    public static ListenableFuture<Void> fulfill(Executor executor, FutureExecutable fn) {
+    /**
+     * 承诺并履约
+     *
+     * @param executor 执行器
+     * @param fn       履约函数
+     * @return 凭证
+     */
+    public static ListenableFuture<Void> promise(Executor executor, FutureExecutable fn) {
         return Promisor.<Void>promise().fulfill(executor, fn);
     }
 
-    public static <V> ListenableFuture<V> fulfill(Executor executor, FutureCallable<V> fn) {
+    /**
+     * 承诺并履约
+     *
+     * @param executor 执行器
+     * @param fn       履约函数
+     * @param <V>      类型
+     * @return 凭证
+     */
+    public static <V> ListenableFuture<V> promise(Executor executor, FutureCallable<V> fn) {
         return Promisor.<V>promise().fulfill(executor, fn);
     }
 

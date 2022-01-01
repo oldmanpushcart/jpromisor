@@ -1,7 +1,5 @@
 package com.github.ompc.jpromisor;
 
-import org.junit.AfterClass;
-
 import java.util.concurrent.Executor;
 
 public class ExecutorSupport {

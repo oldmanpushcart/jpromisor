@@ -363,4 +363,21 @@ public interface ListenableFuture<V> extends Future<V> {
      */
     ListenableFuture<V> rejected(Executor executor, FutureFunction<Exception, V> fn);
 
+    /**
+     * 凭证结果赋值给另外一个承诺
+     *
+     * @param promise 承诺
+     * @param <P>     承诺类型
+     * @return 承诺
+     */
+    default <P extends Promise<V>> P assign(P promise) {
+        if (promise.isDone()) {
+            return promise;
+        }
+        onSuccess(promise::trySuccess);
+        onException(promise::tryException);
+        onCancelled(promise::tryCancel);
+        return promise;
+    }
+
 }
