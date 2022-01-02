@@ -3,7 +3,7 @@ package com.github.ompc.jpromisor;
 import com.github.ompc.jpromisor.FutureFunction.FutureCallable;
 import com.github.ompc.jpromisor.FutureFunction.FutureConsumer;
 import com.github.ompc.jpromisor.FutureFunction.FutureExecutable;
-import com.github.ompc.jpromisor.impl.NotifiablePromise;
+import com.github.ompc.jpromisor.impl.NotifiableFuture;
 
 import java.util.concurrent.Executor;
 
@@ -12,14 +12,32 @@ import java.util.concurrent.Executor;
  */
 public class Promisor {
 
+    private final ListeningFutureHandlerFactory factory;
+
+    /**
+     * 承诺者
+     */
+    public Promisor() {
+        this(() -> null);
+    }
+
+    /**
+     * 承诺者
+     *
+     * @param factory 处理器
+     */
+    public Promisor(ListeningFutureHandlerFactory factory) {
+        this.factory = factory;
+    }
+
     /**
      * 承诺
      *
      * @param <V> 类型
      * @return 承诺
      */
-    public static <V> Promise<V> promise() {
-        return new NotifiablePromise<>();
+    public <V> Promise<V> promise() {
+        return new NotifiableFuture<>(factory.make());
     }
 
     /**
@@ -29,7 +47,7 @@ public class Promisor {
      * @param <V> 类型
      * @return 承诺
      */
-    public static <V> Promise<V> promise(FutureConsumer<Promise<V>> fn) {
+    public <V> Promise<V> promise(FutureConsumer<Promise<V>> fn) {
         final Promise<V> promise = promise();
         return promise(promise, () -> fn.accept(promise));
     }
@@ -42,7 +60,7 @@ public class Promisor {
      * @param <V>     类型
      * @return 承诺
      */
-    public static <V> Promise<V> promise(Promise<V> promise, FutureExecutable fn) {
+    public <V> Promise<V> promise(Promise<V> promise, FutureExecutable fn) {
         try {
             if (!promise.isDone()) {
                 fn.execute();
@@ -60,8 +78,8 @@ public class Promisor {
      * @param fn       履约函数
      * @return 凭证
      */
-    public static ListenableFuture<Void> promise(Executor executor, FutureExecutable fn) {
-        return Promisor.<Void>promise().fulfill(executor, fn);
+    public ListenableFuture<Void> promise(Executor executor, FutureExecutable fn) {
+        return this.<Void>promise().fulfill(executor, fn);
     }
 
     /**
@@ -72,8 +90,8 @@ public class Promisor {
      * @param <V>      类型
      * @return 凭证
      */
-    public static <V> ListenableFuture<V> promise(Executor executor, FutureCallable<V> fn) {
-        return Promisor.<V>promise().fulfill(executor, fn);
+    public <V> ListenableFuture<V> promise(Executor executor, FutureCallable<V> fn) {
+        return this.<V>promise().fulfill(executor, fn);
     }
 
 }

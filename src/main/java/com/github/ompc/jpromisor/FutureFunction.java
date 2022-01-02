@@ -18,7 +18,7 @@ public interface FutureFunction<V, T> {
     T apply(V v) throws Exception;
 
     /**
-     * 凭证调用函数
+     * 调用函数
      *
      * @param <T> 返回类型
      */
@@ -40,7 +40,7 @@ public interface FutureFunction<V, T> {
     }
 
     /**
-     * 函数执行
+     * 执行函数
      */
     interface FutureExecutable extends FutureCallable<Void> {
 
@@ -60,7 +60,7 @@ public interface FutureFunction<V, T> {
     }
 
     /**
-     * 函数消费
+     * 消费函数
      *
      * @param <V> 消费类型
      */
@@ -73,7 +73,7 @@ public interface FutureFunction<V, T> {
         }
 
         /**
-         * 函数消费
+         * 消费
          *
          * @param v 消费值
          * @throws Exception 消费失败

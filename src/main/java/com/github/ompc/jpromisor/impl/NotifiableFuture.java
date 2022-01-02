@@ -1,10 +1,6 @@
 package com.github.ompc.jpromisor.impl;
 
-import com.github.ompc.jpromisor.FutureFunction;
-import com.github.ompc.jpromisor.FutureFunction.FutureConsumer;
-import com.github.ompc.jpromisor.FutureListener;
-import com.github.ompc.jpromisor.ListenableFuture;
-import com.github.ompc.jpromisor.Promise;
+import com.github.ompc.jpromisor.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,9 +11,13 @@ import java.util.concurrent.*;
  *
  * @param <V> 类型
  */
-public class NotifiablePromise<V> extends StatefulFuture<V> implements Promise<V> {
+public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V> {
 
     private static final Executor self = Runnable::run;
+
+    /*
+     * 同步器
+     */
     private final CountDownLatch latch = new CountDownLatch(1);
 
     /*
@@ -29,6 +29,21 @@ public class NotifiablePromise<V> extends StatefulFuture<V> implements Promise<V
      * 已通知标记
      */
     private volatile boolean notified;
+
+    /*
+     * 承诺处理器
+     */
+    private final ListeningFutureHandler handler;
+
+    /**
+     * 可通知承诺
+     *
+     * @param handler 凭证处理器
+     */
+    public NotifiableFuture(ListeningFutureHandler handler) {
+        super(handler);
+        this.handler = handler;
+    }
 
     @Override
     public ListenableFuture<V> sync() throws InterruptedException, ExecutionException, CancellationException {
@@ -211,6 +226,27 @@ public class NotifiablePromise<V> extends StatefulFuture<V> implements Promise<V
 
     }
 
+    // 通知监听器开始
+    private void fireListeningBegin(FutureListener<?> listener) {
+        if (null != handler) {
+            handler.onListeningBegin(this, listener);
+        }
+    }
+
+    // 通知监听器完成
+    private void fireListeningCompleted(FutureListener<?> listener) {
+        if (null != handler) {
+            handler.onListeningCompleted(this, listener);
+        }
+    }
+
+    // 通知监听器异常
+    private void fireListeningException(FutureListener<?> listener, Exception cause) {
+        if (null != handler) {
+            handler.onListeningException(this, listener, cause);
+        }
+    }
+
     @Override
     public ListenableFuture<V> appendListener(FutureListener<V> listener) {
         return appendListener(self, listener);
@@ -220,7 +256,37 @@ public class NotifiablePromise<V> extends StatefulFuture<V> implements Promise<V
     public ListenableFuture<V> appendListener(Executor executor, FutureListener<V> listener) {
 
         // 将监听器封装为异步执行
-        final FutureListener<V> wrap = future -> executor.execute(() -> listener.onDone(this));
+        final FutureListener<V> wrap = future -> {
+
+            // 判断是否需要跳过当前listener
+            if (listener instanceof FutureListener.OnSuccess) {
+                if (!isSuccess()) {
+                    return;
+                }
+            } else if (listener instanceof FutureListener.OnCancelled) {
+                if (!isCancelled()) {
+                    return;
+                }
+            } else if (listener instanceof FutureListener.OnException) {
+                if (!isException()) {
+                    return;
+                }
+            } else if (listener instanceof FutureListener.OnFailure) {
+                if (!isException() && !isCancelled()) {
+                    return;
+                }
+            }
+
+            executor.execute(() -> {
+                try {
+                    fireListeningBegin(listener);
+                    listener.onDone(this);
+                    fireListeningCompleted(listener);
+                } catch (Exception cause) {
+                    fireListeningException(listener, cause);
+                }
+            });
+        };
 
         // 如若从未进行过通知，则将监听器加入到等待通知集合
         if (!notified) {
@@ -246,57 +312,35 @@ public class NotifiablePromise<V> extends StatefulFuture<V> implements Promise<V
     }
 
     @Override
-    public <T> ListenableFuture<T> resolved(FutureFunction<V, T> fn) {
-        return resolved(self, fn);
+    public <T> ListenableFuture<T> successfully(FutureFunction<V, T> fn) {
+        return successfully(self, fn);
     }
 
     @Override
-    public <T> ListenableFuture<T> resolved(Executor executor, FutureFunction<V, T> fn) {
-        final NotifiablePromise<T> thenF = new NotifiablePromise<>();
-
-        // 监听器挂钩
-        onDone(executor, future -> {
-
-            // exception
-            if (future.isException()) {
-                thenF.tryException(future.getException());
-            }
-
-            // cancelled
-            else if (future.isCancelled()) {
-                thenF.tryCancel();
-            }
-
-            // success
-            else if (future.isSuccess()) {
-                try {
-                    thenF.trySuccess(fn.apply(getSuccess()));
-                } catch (InterruptedException cause) {
-                    thenF.tryCancel();
-                    Thread.currentThread().interrupt();
-                } catch (Exception cause) {
-                    thenF.tryException(cause);
-                }
-            }
-
-            // other
-            else {
-                throw new IllegalStateException();
-            }
-
+    public <T> ListenableFuture<T> successfully(Executor executor, FutureFunction<V, T> fn) {
+        return then(executor, fn, e -> {
+            throw e;
         });
-
-        return thenF;
     }
 
     @Override
-    public ListenableFuture<V> rejected(FutureConsumer<Exception> fn) {
-        return rejected(self, fn);
+    public ListenableFuture<V> exceptionally(FutureFunction<Exception, V> fn) {
+        return exceptionally(self, fn);
     }
 
     @Override
-    public ListenableFuture<V> rejected(Executor executor, FutureConsumer<Exception> fn) {
-        final NotifiablePromise<V> thenF = new NotifiablePromise<>();
+    public ListenableFuture<V> exceptionally(Executor executor, FutureFunction<Exception, V> fn) {
+        return then(executor, v -> v, fn);
+    }
+
+    @Override
+    public <T> ListenableFuture<T> then(FutureFunction<V, T> successfully, FutureFunction<Exception, T> exceptionally) {
+        return then(self, successfully, exceptionally);
+    }
+
+    @Override
+    public <T> ListenableFuture<T> then(Executor executor, FutureFunction<V, T> successfully, FutureFunction<Exception, T> exceptionally) {
+        final NotifiableFuture<T> thenF = new NotifiableFuture<>(handler);
 
         // 监听器挂钩
         onDone(executor, future -> {
@@ -304,8 +348,7 @@ public class NotifiablePromise<V> extends StatefulFuture<V> implements Promise<V
             // exception
             if (future.isException()) {
                 try {
-                    fn.accept(future.getException());
-                    thenF.trySuccess(null);
+                    thenF.trySuccess(exceptionally.apply(future.getException()));
                 } catch (InterruptedException cause) {
                     thenF.tryCancel();
                     Thread.currentThread().interrupt();
@@ -322,55 +365,10 @@ public class NotifiablePromise<V> extends StatefulFuture<V> implements Promise<V
             // success
             else if (future.isSuccess()) {
                 try {
-                    thenF.trySuccess(getSuccess());
-                } catch (Exception cause) {
-                    thenF.tryException(cause);
-                }
-            }
-
-            // other
-            else {
-                throw new IllegalStateException();
-            }
-
-        });
-
-        return thenF;
-    }
-
-    @Override
-    public ListenableFuture<V> rejected(FutureFunction<Exception, V> fn) {
-        return rejected(self, fn);
-    }
-
-    @Override
-    public ListenableFuture<V> rejected(Executor executor, FutureFunction<Exception, V> fn) {
-        final NotifiablePromise<V> thenF = new NotifiablePromise<>();
-
-        // 监听器挂钩
-        onDone(executor, future -> {
-
-            // exception
-            if (future.isException()) {
-                try {
-                    thenF.trySuccess(fn.apply(future.getException()));
+                    thenF.trySuccess(successfully.apply(getSuccess()));
                 } catch (InterruptedException cause) {
                     thenF.tryCancel();
                     Thread.currentThread().interrupt();
-                } catch (Exception cause) {
-                    thenF.tryException(cause);
-                }
-            }
-
-            // cancelled
-            else if (future.isCancelled()) {
-                thenF.tryCancel();
-            }
-
-            // success
-            else if (future.isSuccess()) {
-                try {
-                    thenF.trySuccess(getSuccess());
                 } catch (Exception cause) {
                     thenF.tryException(cause);
                 }

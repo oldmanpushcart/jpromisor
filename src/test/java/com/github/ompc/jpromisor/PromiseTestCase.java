@@ -33,13 +33,13 @@ public class PromiseTestCase extends ExecutorSupport {
     @Test
     public void test$promise$state() throws ExecutionException, InterruptedException, TimeoutException {
 
-        final Promise<Integer> noneP = Promisor.promise();
+        final Promise<Integer> noneP = new Promisor().promise();
         Assert.assertFalse(noneP.isDone());
         Assert.assertFalse(noneP.isSuccess());
         Assert.assertFalse(noneP.isCancelled());
         Assert.assertFalse(noneP.isException());
 
-        final Promise<Integer> successP = Promisor.promise();
+        final Promise<Integer> successP = new Promisor().promise();
         successP.trySuccess(100);
         Assert.assertTrue(successP.isDone());
         Assert.assertTrue(successP.isSuccess());
@@ -49,7 +49,7 @@ public class PromiseTestCase extends ExecutorSupport {
         Assert.assertEquals(100, successP.get(100, TimeUnit.MILLISECONDS).intValue());
         Assert.assertEquals(100, successP.getSuccess().intValue());
 
-        final Promise<Integer> cancelP = Promisor.promise();
+        final Promise<Integer> cancelP = new Promisor().promise();
         cancelP.tryCancel();
         Assert.assertTrue(cancelP.isDone());
         Assert.assertFalse(cancelP.isSuccess());
@@ -57,7 +57,7 @@ public class PromiseTestCase extends ExecutorSupport {
         Assert.assertFalse(cancelP.isException());
         Assert.assertEquals(CancellationException.class, cancelP.getException().getClass());
 
-        final Promise<Integer> exceptionP = Promisor.promise();
+        final Promise<Integer> exceptionP = new Promisor().promise();
         exceptionP.tryException(new RuntimeException());
         Assert.assertTrue(exceptionP.isDone());
         Assert.assertFalse(exceptionP.isSuccess());
@@ -70,9 +70,9 @@ public class PromiseTestCase extends ExecutorSupport {
     // 计算三个数之和，符合预期
     @Test
     public void test$promise$sum() {
-        final int sum = Promisor.promise(getExecutor(), () -> 100)
-                .resolved(getExecutor(), num -> num + 100)
-                .resolved(getExecutor(), num -> num + 100)
+        final int sum = new Promisor().promise(getExecutor(), () -> 100)
+                .successfully(getExecutor(), num -> num + 100)
+                .successfully(getExecutor(), num -> num + 100)
                 .awaitUninterruptible()
                 .getSuccess();
         Assert.assertEquals(300, sum);
@@ -84,19 +84,19 @@ public class PromiseTestCase extends ExecutorSupport {
         final CountDownLatch latch = new CountDownLatch(3);
         final AtomicInteger countRef = new AtomicInteger();
         final int[] actual = new int[3];
-        final int sum = Promisor.promise(getExecutor(), () -> 100)
+        final int sum = new Promisor().promise(getExecutor(), () -> 100)
                 .onSuccess(getExecutor(), num -> {
                     countRef.incrementAndGet();
                     actual[0] = num;
                     latch.countDown();
                 })
-                .resolved(getExecutor(), num -> num + 100)
+                .successfully(getExecutor(), num -> num + 100)
                 .onSuccess(getExecutor(), num -> {
                     countRef.incrementAndGet();
                     actual[1] = num;
                     latch.countDown();
                 })
-                .resolved(getExecutor(), num -> num + 100)
+                .successfully(getExecutor(), num -> num + 100)
                 .onSuccess(getExecutor(), num -> {
                     countRef.incrementAndGet();
                     actual[2] = num;
@@ -118,9 +118,9 @@ public class PromiseTestCase extends ExecutorSupport {
         final CountDownLatch latch = new CountDownLatch(3);
         final AtomicInteger countRef = new AtomicInteger();
         final int[] actual = new int[3];
-        final int sum = Promisor.promise(getExecutor(), () -> 100)
+        final int sum = new Promisor().promise(getExecutor(), () -> 100)
 
-                .resolved(getExecutor(), num -> num)
+                .successfully(getExecutor(), num -> num)
                 .onSuccess(getExecutor(), num -> {
                     countRef.incrementAndGet();
                     latch.countDown();
@@ -128,7 +128,7 @@ public class PromiseTestCase extends ExecutorSupport {
                 })
                 .onSuccess(num -> actual[0] = num)
 
-                .resolved(getExecutor(), num -> num + 100)
+                .successfully(getExecutor(), num -> num + 100)
                 .onSuccess(getExecutor(), num -> {
                     countRef.incrementAndGet();
                     latch.countDown();
@@ -136,7 +136,7 @@ public class PromiseTestCase extends ExecutorSupport {
                 })
                 .onSuccess(num -> actual[1] = num)
 
-                .resolved(getExecutor(), num -> num + 100)
+                .successfully(getExecutor(), num -> num + 100)
                 .onSuccess(getExecutor(), num -> {
                     countRef.incrementAndGet();
                     latch.countDown();
@@ -156,8 +156,8 @@ public class PromiseTestCase extends ExecutorSupport {
     // 在then中抛出异常，最终结果为异常
     @Test(expected = RuntimeException.class)
     public void test$promise$then_throw_exception() throws Throwable {
-        final ListenableFuture<Integer> future = Promisor.promise(getExecutor(), () -> 100)
-                .resolved(getExecutor(), num -> {
+        final ListenableFuture<Integer> future = new Promisor().promise(getExecutor(), () -> 100)
+                .successfully(getExecutor(), num -> {
                     if (num == 100) {
                         throw new RuntimeException("TEST!");
                     }
@@ -176,7 +176,7 @@ public class PromiseTestCase extends ExecutorSupport {
 
         final CountDownLatch latch = new CountDownLatch(1);
         final ExecutorService work = Executors.newSingleThreadExecutor();
-        final ListenableFuture<Void> future = Promisor.promise(work, () -> {
+        final ListenableFuture<Void> future = new Promisor().promise(work, () -> {
             latch.countDown();
             synchronized (this) {
                 this.wait();
@@ -201,7 +201,7 @@ public class PromiseTestCase extends ExecutorSupport {
     public void test$promise$cancel() {
 
         final CountDownLatch latch = new CountDownLatch(1);
-        final ListenableFuture<Void> future = Promisor.promise(getExecutor(), latch::await);
+        final ListenableFuture<Void> future = new Promisor().promise(getExecutor(), latch::await);
 
         future.cancel(false);
         latch.countDown();
@@ -217,9 +217,9 @@ public class PromiseTestCase extends ExecutorSupport {
         final int length = 1000000;
         final Collection<ListenableFuture<Integer>> futures = new ArrayList<>();
         for (int index = 0; index < length; index++) {
-            final ListenableFuture<Integer> future = Promisor.promise(getExecutor(), () -> 100)
-                    .resolved(getExecutor(), num -> num * 2)
-                    .resolved(getExecutor(), num -> num + 100);
+            final ListenableFuture<Integer> future = new Promisor().promise(getExecutor(), () -> 100)
+                    .successfully(getExecutor(), num -> num * 2)
+                    .successfully(getExecutor(), num -> num + 100);
             futures.add(future);
         }
 
@@ -233,21 +233,21 @@ public class PromiseTestCase extends ExecutorSupport {
     @Test
     public void test$promise$chain_rejected() {
 
-        final ListenableFuture<Integer> future = Promisor.promise(getExecutor(), () -> 100)
-                .resolved(getExecutor(), v -> v + 100)
-                .resolved(getExecutor(), v -> v + 100)
-                .resolved(getExecutor(), v -> v + 100)
-                .resolved(getExecutor(), v -> v + 100)
-                .resolved(getExecutor(), v -> v + 100)
-                .resolved(getExecutor(), v -> {
+        final ListenableFuture<Integer> future = new Promisor().promise(getExecutor(), () -> 100)
+                .successfully(getExecutor(), v -> v + 100)
+                .successfully(getExecutor(), v -> v + 100)
+                .successfully(getExecutor(), v -> v + 100)
+                .successfully(getExecutor(), v -> v + 100)
+                .successfully(getExecutor(), v -> v + 100)
+                .successfully(getExecutor(), v -> {
                     if (null != v) {
                         throw new RuntimeException();
                     }
                     return v;
                 })
-                .resolved(getExecutor(), v -> v + 100)
-                .resolved(getExecutor(), v -> v + 100)
-                .rejected(getExecutor(), e -> 333)
+                .successfully(getExecutor(), v -> v + 100)
+                .successfully(getExecutor(), v -> v + 100)
+                .exceptionally(getExecutor(), e -> 333)
                 .awaitUninterruptible();
 
         Assert.assertTrue(future.isSuccess());
@@ -259,9 +259,55 @@ public class PromiseTestCase extends ExecutorSupport {
     @Test
     public void test$promise$assign() {
 
-        final Promise<Integer> promise = Promisor.promise();
-        Promisor.promise(getExecutor(), () -> "100")
-                .resolved(getExecutor(), Integer::valueOf)
+        final ListeningFutureHandlerFactory factory = () -> new ListeningFutureHandler() {
+            @Override
+            public void onBegin(ListenableFuture<?> future) {
+                System.out.printf("%s|%s|BEGIN%n",
+                        Thread.currentThread().getId(),
+                        future.hashCode()
+                );
+            }
+
+            @Override
+            public void onCompleted(ListenableFuture<?> future) {
+                System.out.printf("%s|%s|COMPLETED%n",
+                        Thread.currentThread().getId(),
+                        future.hashCode()
+                );
+            }
+
+            @Override
+            public void onListeningBegin(ListenableFuture<?> future, FutureListener<?> listener) {
+                System.out.printf("%s|%s|%s|BEGIN%n",
+                        Thread.currentThread().getId(),
+                        future.hashCode(),
+                        listener.hashCode()
+                );
+            }
+
+            @Override
+            public void onListeningCompleted(ListenableFuture<?> future, FutureListener<?> listener) {
+                System.out.printf("%s|%s|%s|COMPLETED%n",
+                        Thread.currentThread().getId(),
+                        future.hashCode(),
+                        listener.hashCode()
+                );
+            }
+
+            @Override
+            public void onListeningException(ListenableFuture<?> future, FutureListener<?> listener, Exception cause) {
+                System.out.printf("%s|%s|%s|EXCEPTION%n",
+                        Thread.currentThread().getId(),
+                        future.hashCode(),
+                        listener.hashCode()
+                );
+            }
+        };
+
+        final Promise<Integer> promise = new Promisor().promise();
+        new Promisor(factory).promise(getExecutor(), () -> "100")
+                .successfully(getExecutor(), Integer::valueOf)
+                .exceptionally(getExecutor(), e -> 200)
                 .assign(promise)
                 .awaitUninterruptible();
 

@@ -1,7 +1,5 @@
 package com.github.ompc.jpromisor;
 
-import com.github.ompc.jpromisor.FutureFunction.FutureConsumer;
-
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -316,7 +314,7 @@ public interface ListenableFuture<V> extends Future<V> {
      * @param <T> 接力凭证类型
      * @return 接力凭证
      */
-    <T> ListenableFuture<T> resolved(FutureFunction<V, T> fn);
+    <T> ListenableFuture<T> successfully(FutureFunction<V, T> fn);
 
     /**
      * 成功接力
@@ -326,7 +324,7 @@ public interface ListenableFuture<V> extends Future<V> {
      * @param <T>      接力凭证类型
      * @return 接力凭证
      */
-    <T> ListenableFuture<T> resolved(Executor executor, FutureFunction<V, T> fn);
+    <T> ListenableFuture<T> successfully(Executor executor, FutureFunction<V, T> fn);
 
     /**
      * 异常接力
@@ -334,7 +332,7 @@ public interface ListenableFuture<V> extends Future<V> {
      * @param fn 接力函数
      * @return 接力凭证
      */
-    ListenableFuture<V> rejected(FutureConsumer<Exception> fn);
+    ListenableFuture<V> exceptionally(FutureFunction<Exception, V> fn);
 
     /**
      * 异常接力
@@ -343,24 +341,28 @@ public interface ListenableFuture<V> extends Future<V> {
      * @param fn       接力函数
      * @return 接力凭证
      */
-    ListenableFuture<V> rejected(Executor executor, FutureConsumer<Exception> fn);
+    ListenableFuture<V> exceptionally(Executor executor, FutureFunction<Exception, V> fn);
 
     /**
-     * 异常接力
+     * 接力
      *
-     * @param fn 接力函数
+     * @param successfully 成功函数
+     * @param exceptionally 异常函数
+     * @param <T>      类型
      * @return 接力凭证
      */
-    ListenableFuture<V> rejected(FutureFunction<Exception, V> fn);
+    <T> ListenableFuture<T> then(FutureFunction<V, T> successfully, FutureFunction<Exception, T> exceptionally);
 
     /**
-     * 异常接力
+     * 接力
      *
      * @param executor 执行器
-     * @param fn       接力函数
+     * @param successfully 成功函数
+     * @param exceptionally 异常函数
+     * @param <T>      类型
      * @return 接力凭证
      */
-    ListenableFuture<V> rejected(Executor executor, FutureFunction<Exception, V> fn);
+    <T> ListenableFuture<T> then(Executor executor, FutureFunction<V, T> successfully, FutureFunction<Exception, T> exceptionally);
 
     /**
      * 凭证结果赋值给另外一个承诺
