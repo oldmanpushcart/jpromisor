@@ -314,7 +314,7 @@ public interface ListenableFuture<V> extends Future<V> {
      * @param <T> 接力凭证类型
      * @return 接力凭证
      */
-    <T> ListenableFuture<T> successfully(FutureFunction<V, T> fn);
+    <T> ListenableFuture<T> success(FutureFunction<V, T> fn);
 
     /**
      * 成功接力
@@ -324,7 +324,7 @@ public interface ListenableFuture<V> extends Future<V> {
      * @param <T>      接力凭证类型
      * @return 接力凭证
      */
-    <T> ListenableFuture<T> successfully(Executor executor, FutureFunction<V, T> fn);
+    <T> ListenableFuture<T> success(Executor executor, FutureFunction<V, T> fn);
 
     /**
      * 异常接力
@@ -332,7 +332,7 @@ public interface ListenableFuture<V> extends Future<V> {
      * @param fn 接力函数
      * @return 接力凭证
      */
-    ListenableFuture<V> exceptionally(FutureFunction<Exception, V> fn);
+    ListenableFuture<V> exception(FutureFunction<Exception, V> fn);
 
     /**
      * 异常接力
@@ -341,28 +341,28 @@ public interface ListenableFuture<V> extends Future<V> {
      * @param fn       接力函数
      * @return 接力凭证
      */
-    ListenableFuture<V> exceptionally(Executor executor, FutureFunction<Exception, V> fn);
+    ListenableFuture<V> exception(Executor executor, FutureFunction<Exception, V> fn);
 
     /**
      * 接力
      *
-     * @param successfully 成功函数
-     * @param exceptionally 异常函数
-     * @param <T>      类型
+     * @param success   成功函数
+     * @param exception 异常函数
+     * @param <T>       类型
      * @return 接力凭证
      */
-    <T> ListenableFuture<T> then(FutureFunction<V, T> successfully, FutureFunction<Exception, T> exceptionally);
+    <T> ListenableFuture<T> then(FutureFunction<V, T> success, FutureFunction<Exception, T> exception);
 
     /**
      * 接力
      *
-     * @param executor 执行器
-     * @param successfully 成功函数
-     * @param exceptionally 异常函数
-     * @param <T>      类型
+     * @param executor  执行器
+     * @param success   成功函数
+     * @param exception 异常函数
+     * @param <T>       类型
      * @return 接力凭证
      */
-    <T> ListenableFuture<T> then(Executor executor, FutureFunction<V, T> successfully, FutureFunction<Exception, T> exceptionally);
+    <T> ListenableFuture<T> then(Executor executor, FutureFunction<V, T> success, FutureFunction<Exception, T> exception);
 
     /**
      * 凭证结果赋值给另外一个承诺
@@ -375,9 +375,17 @@ public interface ListenableFuture<V> extends Future<V> {
         if (promise.isDone()) {
             return promise;
         }
-        onSuccess(promise::trySuccess);
-        onException(promise::tryException);
-        onCancelled(promise::tryCancel);
+        onDone(future -> {
+            if (future.isException()) {
+                promise.tryException(future.getException());
+            } else if (future.isCancelled()) {
+                promise.tryCancel();
+            } else if (future.isSuccess()) {
+                promise.trySuccess(future.getSuccess());
+            } else {
+                throw new IllegalStateException();
+            }
+        });
         return promise;
     }
 

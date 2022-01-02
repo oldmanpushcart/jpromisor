@@ -78,7 +78,7 @@ public class Promisor {
      * @param fn       履约函数
      * @return 凭证
      */
-    public ListenableFuture<Void> promise(Executor executor, FutureExecutable fn) {
+    public ListenableFuture<Void> fulfill(Executor executor, FutureExecutable fn) {
         return this.<Void>promise().fulfill(executor, fn);
     }
 
@@ -90,7 +90,7 @@ public class Promisor {
      * @param <V>      类型
      * @return 凭证
      */
-    public <V> ListenableFuture<V> promise(Executor executor, FutureCallable<V> fn) {
+    public <V> ListenableFuture<V> fulfill(Executor executor, FutureCallable<V> fn) {
         return this.<V>promise().fulfill(executor, fn);
     }
 

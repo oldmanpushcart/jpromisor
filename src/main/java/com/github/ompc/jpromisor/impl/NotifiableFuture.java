@@ -7,7 +7,7 @@ import java.util.Collection;
 import java.util.concurrent.*;
 
 /**
- * 可通知承诺实现
+ * 可通知凭证实现
  *
  * @param <V> 类型
  */
@@ -31,7 +31,7 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
     private volatile boolean notified;
 
     /*
-     * 承诺处理器
+     * 凭证处理器
      */
     private final ListeningFutureHandler handler;
 
@@ -312,34 +312,34 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
     }
 
     @Override
-    public <T> ListenableFuture<T> successfully(FutureFunction<V, T> fn) {
-        return successfully(self, fn);
+    public <T> ListenableFuture<T> success(FutureFunction<V, T> fn) {
+        return success(self, fn);
     }
 
     @Override
-    public <T> ListenableFuture<T> successfully(Executor executor, FutureFunction<V, T> fn) {
+    public <T> ListenableFuture<T> success(Executor executor, FutureFunction<V, T> fn) {
         return then(executor, fn, e -> {
             throw e;
         });
     }
 
     @Override
-    public ListenableFuture<V> exceptionally(FutureFunction<Exception, V> fn) {
-        return exceptionally(self, fn);
+    public ListenableFuture<V> exception(FutureFunction<Exception, V> fn) {
+        return exception(self, fn);
     }
 
     @Override
-    public ListenableFuture<V> exceptionally(Executor executor, FutureFunction<Exception, V> fn) {
+    public ListenableFuture<V> exception(Executor executor, FutureFunction<Exception, V> fn) {
         return then(executor, v -> v, fn);
     }
 
     @Override
-    public <T> ListenableFuture<T> then(FutureFunction<V, T> successfully, FutureFunction<Exception, T> exceptionally) {
-        return then(self, successfully, exceptionally);
+    public <T> ListenableFuture<T> then(FutureFunction<V, T> success, FutureFunction<Exception, T> exception) {
+        return then(self, success, exception);
     }
 
     @Override
-    public <T> ListenableFuture<T> then(Executor executor, FutureFunction<V, T> successfully, FutureFunction<Exception, T> exceptionally) {
+    public <T> ListenableFuture<T> then(Executor executor, FutureFunction<V, T> success, FutureFunction<Exception, T> exception) {
         final NotifiableFuture<T> thenF = new NotifiableFuture<>(handler);
 
         // 监听器挂钩
@@ -348,7 +348,7 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
             // exception
             if (future.isException()) {
                 try {
-                    thenF.trySuccess(exceptionally.apply(future.getException()));
+                    thenF.trySuccess(exception.apply(future.getException()));
                 } catch (InterruptedException cause) {
                     thenF.tryCancel();
                     Thread.currentThread().interrupt();
@@ -365,7 +365,7 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
             // success
             else if (future.isSuccess()) {
                 try {
-                    thenF.trySuccess(successfully.apply(getSuccess()));
+                    thenF.trySuccess(success.apply(getSuccess()));
                 } catch (InterruptedException cause) {
                     thenF.tryCancel();
                     Thread.currentThread().interrupt();
