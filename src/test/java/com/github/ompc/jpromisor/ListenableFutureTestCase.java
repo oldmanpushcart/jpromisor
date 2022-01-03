@@ -278,8 +278,8 @@ public class ListenableFutureTestCase extends ExecutorSupport {
                 .<Integer>success(v -> {
                     throw new RuntimeException();  // 抛出异常
                 })
-                .then(v -> v+100, e -> 300)        // 返回200，但因上一步抛出了异常，所以不会走到
-                                                   // 捕获异常，并直接返回300
+                .then(v -> v + 100, e -> 300)        // 返回200，但因上一步抛出了异常，所以不会走到
+                // 捕获异常，并直接返回300
                 .success(num -> "RESULT=" + num)   // 格式化输出
                 .awaitUninterruptible();
 
