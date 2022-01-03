@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 
 /**
- * 有状态的凭证
+ * 有状态的Future
  *
  * @param <V>
  */
@@ -18,9 +18,9 @@ abstract class StatefulFuture<V> implements ListenableFuture<V> {
     private final ListeningFutureHandler handler;
 
     /**
-     * 状态凭证
+     * 状态Future
      *
-     * @param handler 凭证处理器
+     * @param handler 处理器
      */
     StatefulFuture(ListeningFutureHandler handler) {
         this.handler = handler;

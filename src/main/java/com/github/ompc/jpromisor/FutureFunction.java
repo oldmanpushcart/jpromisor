@@ -1,7 +1,7 @@
 package com.github.ompc.jpromisor;
 
 /**
- * 凭证函数
+ * Future函数
  *
  * @param <V> 入参类型
  * @param <T> 返回类型

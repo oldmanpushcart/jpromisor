@@ -7,7 +7,7 @@ import java.util.Collection;
 import java.util.concurrent.*;
 
 /**
- * 可通知凭证实现
+ * 可通知Future实现
  *
  * @param <V> 类型
  */
@@ -31,14 +31,14 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
     private volatile boolean notified;
 
     /*
-     * 凭证处理器
+     * 处理器
      */
     private final ListeningFutureHandler handler;
 
     /**
-     * 可通知承诺
+     * 可通知Future
      *
-     * @param handler 凭证处理器
+     * @param handler 处理器
      */
     public NotifiableFuture(ListeningFutureHandler handler) {
         super(handler);

@@ -6,7 +6,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 
 /**
- * 凭证
+ * Future
  * <pre>
  * <table>
  *     <tr>
@@ -311,8 +311,8 @@ public interface ListenableFuture<V> extends Future<V> {
      * 成功接力
      *
      * @param fn  接力函数
-     * @param <T> 接力凭证类型
-     * @return 接力凭证
+     * @param <T> 类型
+     * @return 接力Future
      */
     <T> ListenableFuture<T> success(FutureFunction<V, T> fn);
 
@@ -321,8 +321,8 @@ public interface ListenableFuture<V> extends Future<V> {
      *
      * @param executor 执行器
      * @param fn       接力函数
-     * @param <T>      接力凭证类型
-     * @return 接力凭证
+     * @param <T>      类型
+     * @return 接力Future
      */
     <T> ListenableFuture<T> success(Executor executor, FutureFunction<V, T> fn);
 
@@ -330,7 +330,7 @@ public interface ListenableFuture<V> extends Future<V> {
      * 异常接力
      *
      * @param fn 接力函数
-     * @return 接力凭证
+     * @return 接力Future
      */
     ListenableFuture<V> exception(FutureFunction<Exception, V> fn);
 
@@ -339,7 +339,7 @@ public interface ListenableFuture<V> extends Future<V> {
      *
      * @param executor 执行器
      * @param fn       接力函数
-     * @return 接力凭证
+     * @return 接力Future
      */
     ListenableFuture<V> exception(Executor executor, FutureFunction<Exception, V> fn);
 
@@ -349,7 +349,7 @@ public interface ListenableFuture<V> extends Future<V> {
      * @param success   成功函数
      * @param exception 异常函数
      * @param <T>       类型
-     * @return 接力凭证
+     * @return 接力Future
      */
     <T> ListenableFuture<T> then(FutureFunction<V, T> success, FutureFunction<Exception, T> exception);
 
@@ -360,16 +360,16 @@ public interface ListenableFuture<V> extends Future<V> {
      * @param success   成功函数
      * @param exception 异常函数
      * @param <T>       类型
-     * @return 接力凭证
+     * @return 接力Future
      */
     <T> ListenableFuture<T> then(Executor executor, FutureFunction<V, T> success, FutureFunction<Exception, T> exception);
 
     /**
-     * 凭证结果赋值给另外一个承诺
+     * Future结果赋值给另外一个Promise
      *
-     * @param promise 承诺
-     * @param <P>     承诺类型
-     * @return 承诺
+     * @param promise Promise
+     * @param <P>     类型
+     * @return Promise
      */
     default <P extends Promise<V>> P assign(P promise) {
         if (promise.isDone()) {

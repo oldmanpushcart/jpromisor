@@ -5,14 +5,14 @@ import com.github.ompc.jpromisor.FutureFunction.FutureCallable;
 import java.util.concurrent.Executor;
 
 /**
- * 承诺
+ * Promise
  *
  * @param <V> 类型
  */
 public interface Promise<V> extends ListenableFuture<V> {
 
     /**
-     * 承诺自身（无意义）
+     * 自身（无意义）
      *
      * @return this
      */
@@ -53,7 +53,7 @@ public interface Promise<V> extends ListenableFuture<V> {
      *
      * @param executor 执行器
      * @param fn       履约函数
-     * @return 凭证
+     * @return Future
      */
     ListenableFuture<V> fulfill(Executor executor, FutureCallable<V> fn);
 

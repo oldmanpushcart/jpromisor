@@ -31,21 +31,21 @@ public class Promisor {
     }
 
     /**
-     * 承诺
+     * Promise
      *
      * @param <V> 类型
-     * @return 承诺
+     * @return Promise
      */
     public <V> Promise<V> promise() {
         return new NotifiableFuture<>(factory.make());
     }
 
     /**
-     * 承诺
+     * Promise
      *
-     * @param fn  承诺函数
+     * @param fn  函数
      * @param <V> 类型
-     * @return 承诺
+     * @return Promise
      */
     public <V> Promise<V> promise(FutureConsumer<Promise<V>> fn) {
         final Promise<V> promise = promise();
@@ -53,12 +53,12 @@ public class Promisor {
     }
 
     /**
-     * 承诺
+     * Promise
      *
-     * @param promise 承诺
-     * @param fn      承诺函数
+     * @param promise Promise
+     * @param fn      函数
      * @param <V>     类型
-     * @return 承诺
+     * @return Promise
      */
     public <V> Promise<V> promise(Promise<V> promise, FutureExecutable fn) {
         try {
@@ -72,23 +72,23 @@ public class Promisor {
     }
 
     /**
-     * 承诺并履约
+     * 履约
      *
      * @param executor 执行器
-     * @param fn       履约函数
-     * @return 凭证
+     * @param fn       函数
+     * @return Future
      */
     public ListenableFuture<Void> fulfill(Executor executor, FutureExecutable fn) {
         return this.<Void>promise().fulfill(executor, fn);
     }
 
     /**
-     * 承诺并履约
+     * 履约
      *
      * @param executor 执行器
-     * @param fn       履约函数
+     * @param fn       函数
      * @param <V>      类型
-     * @return 凭证
+     * @return Future
      */
     public <V> ListenableFuture<V> fulfill(Executor executor, FutureCallable<V> fn) {
         return this.<V>promise().fulfill(executor, fn);

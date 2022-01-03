@@ -1,14 +1,14 @@
 package com.github.ompc.jpromisor;
 
 /**
- * 凭证处理器工厂
+ * 处理器工厂
  */
 public interface ListeningFutureHandlerFactory {
 
     /**
-     * 生产凭证处理器
+     * 生产凭理器
      *
-     * @return 承诺处理器
+     * @return 处理器
      */
     ListeningFutureHandler make();
 

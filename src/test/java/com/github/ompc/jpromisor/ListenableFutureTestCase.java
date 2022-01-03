@@ -270,70 +270,20 @@ public class ListenableFutureTestCase extends ExecutorSupport {
 
     }
 
-
     @Test
     public void test() {
 
-        final ListeningFutureHandlerFactory factory = () -> new ListeningFutureHandler() {
-            @Override
-            public void onBegin(ListenableFuture<?> future) {
-                System.out.printf("%s|%s|BEGIN%n",
-                        Thread.currentThread().getId(),
-                        future.hashCode()
-                );
-            }
-
-            @Override
-            public void onCompleted(ListenableFuture<?> future) {
-                System.out.printf("%s|%s|COMPLETED%n",
-                        Thread.currentThread().getId(),
-                        future.hashCode()
-                );
-            }
-
-            @Override
-            public void onListeningBegin(ListenableFuture<?> future, FutureListener<?> listener) {
-                System.out.printf("%s|%s|%s|BEGIN%n",
-                        Thread.currentThread().getId(),
-                        future.hashCode(),
-                        listener.hashCode()
-                );
-            }
-
-            @Override
-            public void onListeningCompleted(ListenableFuture<?> future, FutureListener<?> listener) {
-                System.out.printf("%s|%s|%s|COMPLETED%n",
-                        Thread.currentThread().getId(),
-                        future.hashCode(),
-                        listener.hashCode()
-                );
-            }
-
-            @Override
-            public void onListeningException(ListenableFuture<?> future, FutureListener<?> listener, Exception cause) {
-                System.out.printf("%s|%s|%s|EXCEPTION%n",
-                        Thread.currentThread().getId(),
-                        future.hashCode(),
-                        listener.hashCode()
-                );
-            }
-        };
-
-        final ListenableFuture<Integer> future = new Promisor(factory).fulfill(getExecutor(), () -> 100)
-                .success(getExecutor(), num -> num + 100)
-                .success(getExecutor(), num -> num + 100)
-                .<Integer>success(num -> {
-                    throw new RuntimeException();
+        final ListenableFuture<String> future = new Promisor()
+                .fulfill(Runnable::run, () -> 100) // 返回100
+                .<Integer>success(v -> {
+                    throw new RuntimeException();  // 抛出异常
                 })
-                .success(getExecutor(), num -> num + 100)
-                .exception(getExecutor(), e -> 333)
-                .then(getExecutor(), v -> v, e -> {
-                    throw e;
-                })
+                .then(v -> v+100, e -> 300)        // 返回200，但因上一步抛出了异常，所以不会走到
+                                                   // 捕获异常，并直接返回300
+                .success(num -> "RESULT=" + num)   // 格式化输出
                 .awaitUninterruptible();
 
-        Assert.assertTrue(future.isSuccess());
-        Assert.assertEquals(333, future.getSuccess().intValue());
+        System.out.println(future.getSuccess());
 
     }
 

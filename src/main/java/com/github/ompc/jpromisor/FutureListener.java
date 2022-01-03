@@ -1,7 +1,7 @@
 package com.github.ompc.jpromisor;
 
 /**
- * 凭证监听器
+ * Future监听器
  *
  * @param <V> 类型
  */
@@ -11,7 +11,7 @@ public interface FutureListener<V> {
     /**
      * 完成
      *
-     * @param future 凭证
+     * @param future Future
      */
     void onDone(ListenableFuture<V> future);
 
@@ -103,7 +103,7 @@ public interface FutureListener<V> {
         /**
          * 异常
          *
-         * @param future 凭证
+         * @param future Future
          */
         void onException(Exception future);
 
