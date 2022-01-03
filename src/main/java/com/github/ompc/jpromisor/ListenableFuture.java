@@ -365,28 +365,22 @@ public interface ListenableFuture<V> extends Future<V> {
     <T> ListenableFuture<T> then(Executor executor, FutureFunction<V, T> success, FutureFunction<Exception, T> exception);
 
     /**
-     * Future结果赋值给另外一个Promise
+     * 当前Future结果赋值给另外一个Promise
      *
      * @param promise Promise
      * @param <P>     类型
      * @return Promise
      */
-    default <P extends Promise<V>> P assign(P promise) {
-        if (promise.isDone()) {
-            return promise;
-        }
-        onDone(future -> {
-            if (future.isException()) {
-                promise.tryException(future.getException());
-            } else if (future.isCancelled()) {
-                promise.tryCancel();
-            } else if (future.isSuccess()) {
-                promise.trySuccess(future.getSuccess());
-            } else {
-                throw new IllegalStateException();
-            }
-        });
-        return promise;
-    }
+    <P extends Promise<V>> P assign(P promise);
+
+    /**
+     * 当前Future结果赋值给另外一个Promise
+     *
+     * @param executor 执行器
+     * @param promise  Promise
+     * @param <P>      类型
+     * @return Promise
+     */
+    <P extends Promise<V>> P assign(Executor executor, P promise);
 
 }

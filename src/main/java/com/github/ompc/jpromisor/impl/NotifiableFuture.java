@@ -384,4 +384,27 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
         return thenF;
     }
 
+    @Override
+    public <P extends Promise<V>> P assign(P promise) {
+        return assign(self, promise);
+    }
+
+    @Override
+    public <P extends Promise<V>> P assign(Executor executor, P promise) {
+        if (promise.isDone()) {
+            return promise;
+        }
+        onDone(executor, future -> {
+            if (future.isException()) {
+                promise.tryException(future.getException());
+            } else if (future.isCancelled()) {
+                promise.tryCancel();
+            } else if (future.isSuccess()) {
+                promise.trySuccess(future.getSuccess());
+            } else {
+                throw new IllegalStateException();
+            }
+        });
+        return promise;
+    }
 }
