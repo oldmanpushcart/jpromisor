@@ -212,9 +212,9 @@ public class ListenableFutureTestCase extends ExecutorSupport {
 
     // 同时启动1K个承诺，完成三次计算，最终结果正确
     @Test
-    public void test$promise$sum$1000k() {
+    public void test$promise$sum$10K() {
 
-        final int length = 1000000;
+        final int length = 10000;
         final Collection<ListenableFuture<Integer>> futures = new ArrayList<>();
         for (int index = 0; index < length; index++) {
             final ListenableFuture<Integer> future = new Promisor().fulfill(getExecutor(), () -> 100)
@@ -267,23 +267,6 @@ public class ListenableFutureTestCase extends ExecutorSupport {
 
         Assert.assertTrue(promise.isSuccess());
         Assert.assertEquals(100, promise.getSuccess().intValue());
-
-    }
-
-    @Test
-    public void test() {
-
-        final ListenableFuture<String> future = new Promisor()
-                .fulfill(Runnable::run, () -> 100) // 返回100
-                .<Integer>success(v -> {
-                    throw new RuntimeException();  // 抛出异常
-                })
-                .then(v -> v + 100, e -> 300)        // 返回200，但因上一步抛出了异常，所以不会走到
-                // 捕获异常，并直接返回300
-                .success(num -> "RESULT=" + num)   // 格式化输出
-                .awaitUninterruptible();
-
-        System.out.println(future.getSuccess());
 
     }
 

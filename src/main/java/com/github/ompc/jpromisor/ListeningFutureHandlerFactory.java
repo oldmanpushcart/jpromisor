@@ -6,7 +6,7 @@ package com.github.ompc.jpromisor;
 public interface ListeningFutureHandlerFactory {
 
     /**
-     * 生产凭理器
+     * 生产处理器
      *
      * @return 处理器
      */

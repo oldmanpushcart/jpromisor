@@ -82,4 +82,26 @@ public interface FutureFunction<V, T> {
 
     }
 
+    /**
+     * 直接返回原值
+     *
+     * @param <V> 类型
+     * @return 直接返回原值函数
+     */
+    static <V> FutureFunction<V, V> identity() {
+        return v -> v;
+    }
+
+    /**
+     * 直接抛出原异常
+     *
+     * @param <V> 类型
+     * @return 直接抛出原异常函数
+     */
+    static <V> FutureFunction<Exception, V> throwing() {
+        return e -> {
+            throw e;
+        };
+    }
+
 }

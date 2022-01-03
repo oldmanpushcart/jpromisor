@@ -24,7 +24,7 @@ public class Promisor {
     /**
      * 承诺者
      *
-     * @param factory 处理器
+     * @param factory 处理器工厂
      */
     public Promisor(ListeningFutureHandlerFactory factory) {
         this.factory = factory;

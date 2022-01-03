@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.*;
 
+import static com.github.ompc.jpromisor.FutureFunction.identity;
+import static com.github.ompc.jpromisor.FutureFunction.throwing;
+
 /**
  * 可通知Future实现
  *
@@ -318,9 +321,7 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
 
     @Override
     public <T> ListenableFuture<T> success(Executor executor, FutureFunction<V, T> fn) {
-        return then(executor, fn, e -> {
-            throw e;
-        });
+        return then(executor, fn, throwing());
     }
 
     @Override
@@ -330,7 +331,7 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
 
     @Override
     public ListenableFuture<V> exception(Executor executor, FutureFunction<Exception, V> fn) {
-        return then(executor, v -> v, fn);
+        return then(executor, identity(), fn);
     }
 
     @Override
