@@ -1,4 +1,4 @@
-package com.github.ompc.jpromisor;
+package io.github.ompc.jpromisor;
 
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;

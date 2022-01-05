@@ -1,4 +1,4 @@
-package com.github.ompc.jpromisor;
+package io.github.ompc.jpromisor;
 
 /**
  * Future监听器

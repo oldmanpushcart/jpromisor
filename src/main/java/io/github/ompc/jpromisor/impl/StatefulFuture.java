@@ -1,7 +1,6 @@
-package com.github.ompc.jpromisor.impl;
+package io.github.ompc.jpromisor.impl;
 
-import com.github.ompc.jpromisor.ListenableFuture;
-import com.github.ompc.jpromisor.ListeningFutureHandler;
+import io.github.ompc.jpromisor.ListenableFuture;
 
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -15,24 +14,6 @@ import java.util.concurrent.atomic.AtomicReference;
 abstract class StatefulFuture<V> implements ListenableFuture<V> {
 
     private final AtomicReference<StateResult> resultRef = new AtomicReference<>();
-    private final ListeningFutureHandler handler;
-
-    /**
-     * 状态Future
-     *
-     * @param handler 处理器
-     */
-    StatefulFuture(ListeningFutureHandler handler) {
-        this.handler = handler;
-        fireBegin();
-    }
-
-    // 通知开始
-    private void fireBegin() {
-        if (null != handler) {
-            handler.onBegin(this);
-        }
-    }
 
     private boolean _isDone(StateResult result) {
         return null != result;
@@ -92,22 +73,13 @@ abstract class StatefulFuture<V> implements ListenableFuture<V> {
         return _isSuccess(result) ? (V) result.value : null;
     }
 
-    // 通知完成
-    private boolean fireCompleted() {
-        if (null != handler) {
-            handler.onCompleted(this);
-        }
-        return true;
-    }
-
     /**
      * 尝试取消
      *
      * @return TRUE | FALSE
      */
     boolean tryCancel() {
-        return resultRef.compareAndSet(null, new StateResult(State.CANCEL, new CancellationException()))
-                && fireCompleted();
+        return resultRef.compareAndSet(null, new StateResult(State.CANCEL, new CancellationException()));
     }
 
     /**
@@ -117,8 +89,7 @@ abstract class StatefulFuture<V> implements ListenableFuture<V> {
      * @return TRUE | FALSE
      */
     boolean tryException(Exception cause) {
-        return resultRef.compareAndSet(null, new StateResult(State.EXCEPTION, cause))
-                && fireCompleted();
+        return resultRef.compareAndSet(null, new StateResult(State.EXCEPTION, cause));
     }
 
     /**
@@ -128,8 +99,7 @@ abstract class StatefulFuture<V> implements ListenableFuture<V> {
      * @return TRUE | FALSE
      */
     boolean trySuccess(V value) {
-        return resultRef.compareAndSet(null, new StateResult(State.SUCCESS, value))
-                && fireCompleted();
+        return resultRef.compareAndSet(null, new StateResult(State.SUCCESS, value));
     }
 
     /**

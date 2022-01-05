@@ -1,13 +1,14 @@
-package com.github.ompc.jpromisor.impl;
+package io.github.ompc.jpromisor.impl;
 
-import com.github.ompc.jpromisor.*;
+import io.github.ompc.jpromisor.*;
+import io.github.ompc.jpromisor.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.*;
 
-import static com.github.ompc.jpromisor.FutureFunction.identity;
-import static com.github.ompc.jpromisor.FutureFunction.throwing;
+import static io.github.ompc.jpromisor.FutureFunction.identity;
+import static io.github.ompc.jpromisor.FutureFunction.throwing;
 
 /**
  * 可通知Future实现
@@ -34,18 +35,17 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
     private volatile boolean notified;
 
     /*
-     * 处理器
+     * 监听拦截器
      */
-    private final ListeningFutureHandler handler;
+    private final ListeningInterceptor interceptor;
 
     /**
      * 可通知Future
      *
-     * @param handler 处理器
+     * @param interceptor 监听拦截器
      */
-    public NotifiableFuture(ListeningFutureHandler handler) {
-        super(handler);
-        this.handler = handler;
+    public NotifiableFuture(ListeningInterceptor interceptor) {
+        this.interceptor = interceptor;
     }
 
     @Override
@@ -229,27 +229,6 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
 
     }
 
-    // 通知监听器开始
-    private void fireListeningBegin(FutureListener<?> listener) {
-        if (null != handler) {
-            handler.onListeningBegin(this, listener);
-        }
-    }
-
-    // 通知监听器完成
-    private void fireListeningCompleted(FutureListener<?> listener) {
-        if (null != handler) {
-            handler.onListeningCompleted(this, listener);
-        }
-    }
-
-    // 通知监听器异常
-    private void fireListeningException(FutureListener<?> listener, Exception cause) {
-        if (null != handler) {
-            handler.onListeningException(this, listener, cause);
-        }
-    }
-
     @Override
     public ListenableFuture<V> appendListener(FutureListener<V> listener) {
         return appendListener(self, listener);
@@ -280,15 +259,9 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
                 }
             }
 
-            executor.execute(() -> {
-                try {
-                    fireListeningBegin(listener);
-                    listener.onDone(this);
-                    fireListeningCompleted(listener);
-                } catch (Exception cause) {
-                    fireListeningException(listener, cause);
-                }
-            });
+            // 执行监听器
+            executor.execute(() -> interceptor.onListening(this, listener));
+
         };
 
         // 如若从未进行过通知，则将监听器加入到等待通知集合
@@ -341,7 +314,7 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
 
     @Override
     public <T> ListenableFuture<T> then(Executor executor, FutureFunction<V, T> success, FutureFunction<Exception, T> exception) {
-        final NotifiableFuture<T> thenF = new NotifiableFuture<>(handler);
+        final NotifiableFuture<T> thenF = new NotifiableFuture<>(interceptor);
 
         // 监听器挂钩
         onDone(executor, future -> {

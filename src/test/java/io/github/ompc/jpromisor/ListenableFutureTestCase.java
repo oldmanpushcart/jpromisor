@@ -1,4 +1,4 @@
-package com.github.ompc.jpromisor;
+package io.github.ompc.jpromisor;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -229,7 +229,7 @@ public class ListenableFutureTestCase extends ExecutorSupport {
     }
 
 
-    // 链方调用，rejected会被传递
+    // 链式调用，rejected会被传递
     @Test
     public void test$promise$chain_rejected() {
 
@@ -256,6 +256,7 @@ public class ListenableFutureTestCase extends ExecutorSupport {
     }
 
 
+    // 链式调用赋值给另外一个Promise
     @Test
     public void test$promise$assign() {
         final Promise<Integer> promise = new Promisor().promise();
@@ -267,6 +268,53 @@ public class ListenableFutureTestCase extends ExecutorSupport {
 
         Assert.assertTrue(promise.isSuccess());
         Assert.assertEquals(100, promise.getSuccess().intValue());
+
+    }
+
+    // 增加拦截器拦截数量正确
+    @Test
+    public void test$promise$interceptor() {
+
+        final AtomicInteger cnt = new AtomicInteger();
+        final ListenableFuture<Integer> future = new Promisor(new ListeningInterceptor() {
+            @Override
+            public <V> void onListening(ListenableFuture<V> future, FutureListener<V> listener) {
+                listener.onDone(future);
+                cnt.incrementAndGet();
+            }
+        }).fulfill(getExecutor(), () -> 100)
+
+                // +1
+                .onSuccess(v -> {
+                    System.out.println("step1="+cnt.get());
+                })
+
+                // +0
+                .onFailure(e -> {
+                    System.out.println("step2="+cnt.get());
+                })
+
+                // +1
+                .<Integer>success(v -> {
+                    System.out.println("step3="+cnt.get());
+                    throw new RuntimeException();
+                })
+
+                // +1
+                .success(v -> {
+                    System.out.println("step4="+cnt.get());
+                    return v + 1;
+                })
+
+                // +1
+                .exception(e -> {
+                    System.out.println("step5="+cnt.get());
+                    return 400;
+                })
+                .awaitUninterruptible();
+
+        Assert.assertEquals(400, future.getSuccess().intValue());
+        Assert.assertEquals(4, cnt.get());
 
     }
 

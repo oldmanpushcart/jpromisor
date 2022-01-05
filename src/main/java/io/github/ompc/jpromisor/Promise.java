@@ -1,6 +1,4 @@
-package com.github.ompc.jpromisor;
-
-import com.github.ompc.jpromisor.FutureFunction.FutureCallable;
+package io.github.ompc.jpromisor;
 
 import java.util.concurrent.Executor;
 
@@ -55,6 +53,6 @@ public interface Promise<V> extends ListenableFuture<V> {
      * @param fn       履约函数
      * @return Future
      */
-    ListenableFuture<V> fulfill(Executor executor, FutureCallable<V> fn);
+    ListenableFuture<V> fulfill(Executor executor, FutureFunction.FutureCallable<V> fn);
 
 }

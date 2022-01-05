@@ -1,9 +1,9 @@
-package com.github.ompc.jpromisor;
+package io.github.ompc.jpromisor;
 
-import com.github.ompc.jpromisor.FutureFunction.FutureCallable;
-import com.github.ompc.jpromisor.FutureFunction.FutureConsumer;
-import com.github.ompc.jpromisor.FutureFunction.FutureExecutable;
-import com.github.ompc.jpromisor.impl.NotifiableFuture;
+import io.github.ompc.jpromisor.FutureFunction.FutureCallable;
+import io.github.ompc.jpromisor.FutureFunction.FutureConsumer;
+import io.github.ompc.jpromisor.FutureFunction.FutureExecutable;
+import io.github.ompc.jpromisor.impl.NotifiableFuture;
 
 import java.util.concurrent.Executor;
 
@@ -12,22 +12,22 @@ import java.util.concurrent.Executor;
  */
 public class Promisor {
 
-    private final ListeningFutureHandlerFactory factory;
+    private final ListeningInterceptor interceptor;
 
     /**
      * 承诺者
      */
     public Promisor() {
-        this(() -> null);
+        this(ListeningInterceptor.empty);
     }
 
     /**
      * 承诺者
      *
-     * @param factory 处理器工厂
+     * @param interceptor 监听拦截器
      */
-    public Promisor(ListeningFutureHandlerFactory factory) {
-        this.factory = factory;
+    public Promisor(ListeningInterceptor interceptor) {
+        this.interceptor = interceptor;
     }
 
     /**
@@ -37,7 +37,7 @@ public class Promisor {
      * @return Promise
      */
     public <V> Promise<V> promise() {
-        return new NotifiableFuture<>(factory.make());
+        return new NotifiableFuture<>(interceptor);
     }
 
     /**
