@@ -1,9 +1,9 @@
-package io.github.ompc.jpromisor;
+package io.github.oldmanpushcart.jpromisor;
 
-import io.github.ompc.jpromisor.FutureFunction.FutureCallable;
-import io.github.ompc.jpromisor.FutureFunction.FutureConsumer;
-import io.github.ompc.jpromisor.FutureFunction.FutureExecutable;
-import io.github.ompc.jpromisor.impl.NotifiableFuture;
+import io.github.oldmanpushcart.jpromisor.impl.NotifiableFuture;
+import io.github.oldmanpushcart.jpromisor.FutureFunction.FutureCallable;
+import io.github.oldmanpushcart.jpromisor.FutureFunction.FutureConsumer;
+import io.github.oldmanpushcart.jpromisor.FutureFunction.FutureExecutable;
 
 import java.util.concurrent.Executor;
 

@@ -1,4 +1,4 @@
-package io.github.ompc.jpromisor;
+package io.github.oldmanpushcart.jpromisor;
 
 import org.junit.Assert;
 import org.junit.Test;

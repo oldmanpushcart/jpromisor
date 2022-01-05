@@ -1,6 +1,6 @@
-package io.github.ompc.jpromisor.impl;
+package io.github.oldmanpushcart.jpromisor.impl;
 
-import io.github.ompc.jpromisor.ListenableFuture;
+import io.github.oldmanpushcart.jpromisor.ListenableFuture;
 
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicReference;

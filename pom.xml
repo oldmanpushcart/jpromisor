@@ -8,7 +8,7 @@
         <version>9</version>
     </parent>
 
-    <groupId>io.github.ompc.jpromisor</groupId>
+    <groupId>io.github.oldmanpushcart.jpromisor</groupId>
     <artifactId>jpromisor</artifactId>
     <packaging>jar</packaging>
     <version>1.0.0-SNAPSHOT</version>

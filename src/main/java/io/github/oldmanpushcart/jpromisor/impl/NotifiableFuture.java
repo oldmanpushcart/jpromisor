@@ -1,14 +1,13 @@
-package io.github.ompc.jpromisor.impl;
+package io.github.oldmanpushcart.jpromisor.impl;
 
-import io.github.ompc.jpromisor.*;
-import io.github.ompc.jpromisor.*;
+import io.github.oldmanpushcart.jpromisor.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.*;
 
-import static io.github.ompc.jpromisor.FutureFunction.identity;
-import static io.github.ompc.jpromisor.FutureFunction.throwing;
+import static io.github.oldmanpushcart.jpromisor.FutureFunction.identity;
+import static io.github.oldmanpushcart.jpromisor.FutureFunction.throwing;
 
 /**
  * 可通知Future实现
