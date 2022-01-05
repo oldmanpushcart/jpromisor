@@ -7,7 +7,7 @@
     <packaging>jar</packaging>
     <version>1.0.0</version>
     <name>jpromisor</name>
-    <description>jpromisor is a promise lib wirte by java</description>
+    <description>jpromisor is a promise lib write by java</description>
     <url>https://github.com/oldmanpushcart/jpromisor</url>
 
     <properties>
