@@ -9,14 +9,14 @@ jPromisor是一个Java封装的Promise模式库，遵守[Promises/A+](https://gi
 <dependency>
     <groupId>io.github.oldmanpushcart.jpromisor</groupId>
     <artifactId>jpromisor</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
 </dependency>
 ```
 
 ## Gradle
 
 ```
-compile 'io.github.oldmanpushcart.jpromisor:jpromisor:1.0.0-SNAPSHOT' { transitive = true }
+compile 'io.github.oldmanpushcart.jpromisor:jpromisor:1.0.0' { transitive = true }
 ```
 
 ## 简单例子
