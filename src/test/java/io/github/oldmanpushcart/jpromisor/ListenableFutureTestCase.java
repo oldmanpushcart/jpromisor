@@ -279,38 +279,31 @@ public class ListenableFutureTestCase extends ExecutorSupport {
         final ListenableFuture<Integer> future = new Promisor(new ListeningInterceptor() {
             @Override
             public <V> void onListening(ListenableFuture<V> future, FutureListener<V> listener) {
-                listener.onDone(future);
                 cnt.incrementAndGet();
+                listener.onDone(future);
             }
         }).fulfill(getExecutor(), () -> 100)
 
                 // +1
                 .onSuccess(v -> {
-                    System.out.println("step1="+cnt.get());
+
                 })
 
                 // +0
                 .onFailure(e -> {
-                    System.out.println("step2="+cnt.get());
+
                 })
 
                 // +1
                 .<Integer>success(v -> {
-                    System.out.println("step3="+cnt.get());
                     throw new RuntimeException();
                 })
 
                 // +1
-                .success(v -> {
-                    System.out.println("step4="+cnt.get());
-                    return v + 1;
-                })
+                .success(v -> v + 1)
 
                 // +1
-                .exception(e -> {
-                    System.out.println("step5="+cnt.get());
-                    return 400;
-                })
+                .exception(e -> 400)
                 .awaitUninterruptible();
 
         Assert.assertEquals(400, future.getSuccess().intValue());
