@@ -2,8 +2,6 @@
 
 jPromisor是一个Java封装的Promise模式库，遵守[Promises/A+](https://github.com/promises-aplus/promises-spec)规范。
 
-当前jPromisor还在完善中，尚未提交到Maven中央仓库
-
 ## Maven
 
 ```xml
