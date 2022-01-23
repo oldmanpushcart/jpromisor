@@ -65,6 +65,15 @@ import java.util.concurrent.Future;
 public interface ListenableFuture<V> extends Future<V> {
 
     /**
+     * 自身（无意义），强制返回指定的类型
+     *
+     * @param <F> 目标类型
+     * @return this
+     * @since 1.0.1
+     */
+    <F extends ListenableFuture<V>> F future();
+
+    /**
      * 是否失败
      *
      * @return TRUE | FALSE

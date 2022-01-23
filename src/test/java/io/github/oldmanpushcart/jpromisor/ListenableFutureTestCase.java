@@ -311,4 +311,18 @@ public class ListenableFutureTestCase extends ExecutorSupport {
 
     }
 
+    // self / future / promise能正常转换类型
+    @Test
+    public void test$self() {
+
+        final TokenFuture<String> future = new TokenPromiseImpl<String>("HELLO")
+                .fulfill(getExecutor(), () -> "WORLD!")
+                .future();
+
+        future.awaitUninterruptible();
+        Assert.assertEquals("HELLO", future.getToken());
+        Assert.assertEquals("WORLD!", future.getSuccess());
+
+    }
+
 }

@@ -17,6 +17,15 @@ public interface Promise<V> extends ListenableFuture<V> {
     Promise<V> self();
 
     /**
+     * 自身（无意义），强制返回指定的目标类型
+     *
+     * @param <P> 目标类型
+     * @return this
+     * @since 1.0.1
+     */
+    <P extends Promise<V>> P promise();
+
+    /**
      * 尝试取消
      *
      * @return TRUE | FALSE

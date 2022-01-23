@@ -47,6 +47,15 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
         this.interceptor = interceptor;
     }
 
+    /**
+     * 可通知Future
+     *
+     * @since 1.0.1
+     */
+    public NotifiableFuture() {
+        this(null);
+    }
+
     @Override
     public ListenableFuture<V> sync() throws InterruptedException, ExecutionException, CancellationException {
         get();
@@ -107,6 +116,18 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
     @Override
     public Promise<V> self() {
         return this;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <P extends Promise<V>> P promise() {
+        return (P) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <F extends ListenableFuture<V>> F future() {
+        return (F) this;
     }
 
     @Override
