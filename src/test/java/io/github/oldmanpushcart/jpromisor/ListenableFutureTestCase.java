@@ -316,6 +316,9 @@ public class ListenableFutureTestCase extends ExecutorSupport {
     public void test$self() {
 
         final TokenFuture<String> future = new TokenPromiseImpl<String>("HELLO")
+                .execute(getExecutor(), promise -> {
+
+                })
                 .fulfill(getExecutor(), () -> "WORLD!")
                 .future();
 

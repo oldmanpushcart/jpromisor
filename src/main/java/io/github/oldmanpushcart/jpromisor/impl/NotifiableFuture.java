@@ -183,6 +183,24 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
         return this;
     }
 
+    @Override
+    public Promise<V> execute(Executor executor, FutureFunction.FutureConsumer<Promise<V>> fn) {
+        executor.execute(() -> {
+            if (isDone()) {
+                return;
+            }
+            try {
+                fn.accept(this);
+            } catch (InterruptedException cause) {
+                tryCancel();
+                Thread.currentThread().interrupt();
+            } catch (Exception cause) {
+                tryException(cause);
+            }
+        });
+        return this;
+    }
+
     private V _get() throws ExecutionException {
         if (isException()) {
             throw new ExecutionException(getException());
