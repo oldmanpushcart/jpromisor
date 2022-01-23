@@ -364,9 +364,19 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
 
     @Override
     public <P extends Promise<V>> P assign(Executor executor, P promise) {
+
+        /*
+         * 如果需要赋值的是他自己，则直接返回
+         * @since 1.0.1
+         */
+        if (this == promise) {
+            return promise;
+        }
+
         if (promise.isDone()) {
             return promise;
         }
+
         onDone(executor, future -> {
             if (future.isException()) {
                 promise.tryException(future.getException());
