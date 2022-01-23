@@ -65,6 +65,15 @@ public interface Promise<V> extends ListenableFuture<V> {
     ListenableFuture<V> fulfill(Executor executor, FutureFunction.FutureCallable<V> fn);
 
     /**
+     * 履约
+     *
+     * @param fn 履约函数
+     * @return Future
+     * @since 1.0.1
+     */
+    ListenableFuture<V> fulfill(FutureFunction.FutureCallable<V> fn);
+
+    /**
      * 执行
      *
      * @param executor 执行器
@@ -73,5 +82,14 @@ public interface Promise<V> extends ListenableFuture<V> {
      * @since 1.0.1
      */
     Promise<V> execute(Executor executor, FutureFunction.FutureConsumer<Promise<V>> fn);
+
+    /**
+     * 执行
+     *
+     * @param fn       执行函数
+     * @return Promise
+     * @since 1.0.1
+     */
+    Promise<V> execute(FutureFunction.FutureConsumer<Promise<V>> fn);
 
 }

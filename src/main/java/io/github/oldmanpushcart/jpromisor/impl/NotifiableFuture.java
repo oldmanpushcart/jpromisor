@@ -184,6 +184,11 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
     }
 
     @Override
+    public ListenableFuture<V> fulfill(FutureFunction.FutureCallable<V> fn) {
+        return fulfill(self, fn);
+    }
+
+    @Override
     public Promise<V> execute(Executor executor, FutureFunction.FutureConsumer<Promise<V>> fn) {
         executor.execute(() -> {
             if (isDone()) {
@@ -199,6 +204,11 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
             }
         });
         return this;
+    }
+
+    @Override
+    public Promise<V> execute(FutureFunction.FutureConsumer<Promise<V>> fn) {
+        return execute(self, fn);
     }
 
     private V _get() throws ExecutionException {
