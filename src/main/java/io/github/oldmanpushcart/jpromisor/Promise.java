@@ -78,7 +78,7 @@ public interface Promise<V> extends ListenableFuture<V> {
      *
      * @param executor 执行器
      * @param fn       执行函数
-     * @return Promise
+     * @return this
      * @since 1.0.1
      */
     Promise<V> execute(Executor executor, FutureFunction.FutureConsumer<Promise<V>> fn);
@@ -86,10 +86,48 @@ public interface Promise<V> extends ListenableFuture<V> {
     /**
      * 执行
      *
-     * @param fn       执行函数
-     * @return Promise
+     * @param fn 执行函数
+     * @return this
      * @since 1.0.1
      */
     Promise<V> execute(FutureFunction.FutureConsumer<Promise<V>> fn);
+
+    /**
+     * 接受目标Future的结果
+     *
+     * @param future 目标Future
+     * @return this
+     * @since 1.0.1
+     */
+    Promise<V> accept(ListenableFuture<V> future);
+
+    /**
+     * 接受目标Future的结果
+     *
+     * @param executor 执行器
+     * @param future   目标Future
+     * @return this
+     * @since 1.0.1
+     */
+    Promise<V> accept(Executor executor, ListenableFuture<V> future);
+
+    /**
+     * 接受目标Future的失败
+     *
+     * @param future 目标Future
+     * @return this
+     * @since 1.0.1
+     */
+    Promise<V> acceptFail(ListenableFuture<?> future);
+
+    /**
+     * 接受目标Future的失败
+     *
+     * @param executor 执行器
+     * @param future   目标Future
+     * @return this
+     * @since 1.0.1
+     */
+    Promise<V> acceptFail(Executor executor, ListenableFuture<?> future);
 
 }

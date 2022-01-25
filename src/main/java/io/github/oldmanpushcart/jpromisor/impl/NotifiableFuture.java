@@ -211,6 +211,26 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
         return execute(self, fn);
     }
 
+    @Override
+    public Promise<V> accept(ListenableFuture<V> target) {
+        return accept(self, target);
+    }
+
+    @Override
+    public Promise<V> accept(Executor executor, ListenableFuture<V> target) {
+        return target.assign(executor, this);
+    }
+
+    @Override
+    public Promise<V> acceptFail(ListenableFuture<?> target) {
+        return acceptFail(self, target);
+    }
+
+    @Override
+    public Promise<V> acceptFail(Executor executor, ListenableFuture<?> target) {
+        return target.assignFail(executor, this);
+    }
+
     private V _get() throws ExecutionException {
         if (isException()) {
             throw new ExecutionException(getException());
@@ -437,6 +457,33 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
                 throw new IllegalStateException();
             }
         });
+        return promise;
+    }
+
+    @Override
+    public <P extends Promise<?>> P assignFail(P promise) {
+        return assignFail(self, promise);
+    }
+
+    @Override
+    public <P extends Promise<?>> P assignFail(Executor executor, P promise) {
+
+        if (this == promise) {
+            return promise;
+        }
+
+        if (promise.isDone()) {
+            return promise;
+        }
+
+        onDone(executor, future -> {
+            if (future.isCancelled()) {
+                promise.tryCancel();
+            } else if (future.isException()) {
+                promise.tryException(future.getException());
+            }
+        });
+
         return promise;
     }
 }

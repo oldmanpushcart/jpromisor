@@ -392,4 +392,25 @@ public interface ListenableFuture<V> extends Future<V> {
      */
     <P extends Promise<V>> P assign(Executor executor, P promise);
 
+    /**
+     * 当前Future的失败结果赋值给另外一个Promise
+     *
+     * @param promise Promise
+     * @param <P>     类型
+     * @return Promise
+     * @since 1.0.1
+     */
+    <P extends Promise<?>> P assignFail(P promise);
+
+    /**
+     * 当前Future的失败结果赋值给另外一个Promise
+     *
+     * @param executor 执行器
+     * @param promise  Promise
+     * @param <P>      类型
+     * @return Promise
+     * @since 1.0.1
+     */
+    <P extends Promise<?>> P assignFail(Executor executor, P promise);
+
 }
