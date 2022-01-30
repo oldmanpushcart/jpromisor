@@ -44,7 +44,9 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
      * @param interceptor 监听拦截器
      */
     public NotifiableFuture(ListeningInterceptor interceptor) {
-        this.interceptor = interceptor;
+        this.interceptor = null != interceptor
+                ? interceptor
+                : ListeningInterceptor.empty;
     }
 
     /**
