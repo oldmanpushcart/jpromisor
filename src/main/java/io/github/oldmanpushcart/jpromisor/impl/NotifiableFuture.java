@@ -308,29 +308,47 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
     public ListenableFuture<V> appendListener(Executor executor, FutureListener<V> listener) {
 
         // 将监听器封装为异步执行
-        final FutureListener<V> wrap = future -> {
+        final FutureListener<V> wrap = new FutureListener<V>() {
 
-            // 判断是否需要跳过当前listener
-            if (listener instanceof FutureListener.OnSuccess) {
-                if (!isSuccess()) {
-                    return;
+            @Override
+            public void onDone(ListenableFuture<V> future) {
+
+                // 判断是否需要跳过当前listener
+                if (listener instanceof FutureListener.OnSuccess) {
+                    if (!isSuccess()) {
+                        return;
+                    }
+                } else if (listener instanceof FutureListener.OnCancelled) {
+                    if (!isCancelled()) {
+                        return;
+                    }
+                } else if (listener instanceof FutureListener.OnException) {
+                    if (!isException()) {
+                        return;
+                    }
+                } else if (listener instanceof FutureListener.OnFailure) {
+                    if (!isException() && !isCancelled()) {
+                        return;
+                    }
                 }
-            } else if (listener instanceof FutureListener.OnCancelled) {
-                if (!isCancelled()) {
-                    return;
-                }
-            } else if (listener instanceof FutureListener.OnException) {
-                if (!isException()) {
-                    return;
-                }
-            } else if (listener instanceof FutureListener.OnFailure) {
-                if (!isException() && !isCancelled()) {
-                    return;
-                }
+
+                // 执行监听器
+                executor.execute(() -> interceptor.onListening(NotifiableFuture.this, listener));
+
             }
 
-            // 执行监听器
-            executor.execute(() -> interceptor.onListening(this, listener));
+            @Override
+            public int hashCode() {
+                return listener.hashCode();
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                if (!(obj instanceof FutureListener)) {
+                    return false;
+                }
+                return listener.equals(obj);
+            }
 
         };
 
@@ -350,9 +368,14 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
     }
 
     @Override
-    public ListenableFuture<V> removeListener(FutureListener<V> listener) {
+    public ListenableFuture<V> removeListener(FutureListener<V> target) {
         synchronized (this) {
-            notifies.remove(listener);
+            /*
+             * 因为notifies中存放的数据已经被wrap过了，
+             * 所以这里不能直接用remove
+             */
+            notifies.removeIf(listener ->
+                    listener.hashCode() == target.hashCode() && listener.equals(target));
         }
         return this;
     }
