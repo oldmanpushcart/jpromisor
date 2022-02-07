@@ -1,5 +1,6 @@
 package io.github.oldmanpushcart.jpromisor;
 
+import io.github.oldmanpushcart.jpromisor.impl.NotifiableFuture;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,10 +13,10 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Promise单线程测试用例
+ * Promise测试用例
  */
 @RunWith(Parameterized.class)
-public class ListenableFutureTestCase extends ExecutorSupport {
+public class PromiseTestCase extends ExecutorSupport {
 
     @Parameterized.Parameters
     public static Collection<Object[]> parameters() {
@@ -25,7 +26,7 @@ public class ListenableFutureTestCase extends ExecutorSupport {
         });
     }
 
-    public ListenableFutureTestCase(Executor executor) {
+    public PromiseTestCase(Executor executor) {
         super(executor);
     }
 
@@ -311,9 +312,48 @@ public class ListenableFutureTestCase extends ExecutorSupport {
 
     }
 
+
+    /**
+     * for {@link #test$promise$future()}
+     *
+     * @param <V> 类型
+     */
+    public interface TokenFuture<V> extends ListenableFuture<V> {
+        String getToken();
+    }
+
+    /**
+     * for {@link #test$promise$future()}
+     *
+     * @param <V> 类型
+     */
+    public interface TokenPromise<V> extends Promise<V>, TokenFuture<V> {
+
+    }
+
+    /**
+     * for {@link #test$promise$future()}
+     *
+     * @param <V> 类型
+     */
+    public static class TokenPromiseImpl<V> extends NotifiableFuture<V> implements TokenPromise<V> {
+
+        private final String token;
+
+        public TokenPromiseImpl(String token) {
+            this.token = token;
+        }
+
+        @Override
+        public String getToken() {
+            return token;
+        }
+
+    }
+
     // self / future / promise能正常转换类型
     @Test
-    public void test$self() {
+    public void test$promise$future() {
 
         final TokenFuture<String> future = new TokenPromiseImpl<String>("HELLO")
                 .execute(getExecutor(), promise -> {
@@ -327,5 +367,28 @@ public class ListenableFutureTestCase extends ExecutorSupport {
         Assert.assertEquals("WORLD!", future.getSuccess());
 
     }
+
+    // promise#execute失败，后续都不会被执行
+    @Test
+    public void test$promise$execute_exception_ignore_next() {
+
+        final AtomicInteger cnt = new AtomicInteger();
+        new Promisor().promise()
+                .execute(promise -> {
+                    throw new RuntimeException();
+                })
+                .execute(getExecutor(), promise -> {
+                    cnt.incrementAndGet(); // 不会被执行
+                })
+                .fulfill(getExecutor(), () -> {
+                    cnt.incrementAndGet(); // 不会被执行
+                    return new Object();
+                })
+                .awaitUninterruptible();
+
+        Assert.assertEquals(0, cnt.get());
+
+    }
+
 
 }
