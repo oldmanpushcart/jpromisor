@@ -44,7 +44,18 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
      * @param interceptor 监听拦截器
      */
     public NotifiableFuture(ListeningInterceptor interceptor) {
-        this.interceptor = interceptor;
+        this.interceptor = null != interceptor
+                ? interceptor
+                : ListeningInterceptor.empty;
+    }
+
+    /**
+     * 可通知Future
+     *
+     * @since 1.0.1
+     */
+    public NotifiableFuture() {
+        this(null);
     }
 
     @Override
@@ -109,6 +120,18 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
         return this;
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public <P extends Promise<V>> P promise() {
+        return (P) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <F extends ListenableFuture<V>> F future() {
+        return (F) this;
+    }
+
     @Override
     public boolean tryCancel() {
         if (super.tryCancel()) {
@@ -160,6 +183,54 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
             }
         });
         return this;
+    }
+
+    @Override
+    public ListenableFuture<V> fulfill(FutureFunction.FutureCallable<V> fn) {
+        return fulfill(self, fn);
+    }
+
+    @Override
+    public Promise<V> execute(Executor executor, FutureFunction.FutureConsumer<Promise<V>> fn) {
+        executor.execute(() -> {
+            if (isDone()) {
+                return;
+            }
+            try {
+                fn.accept(this);
+            } catch (InterruptedException cause) {
+                tryCancel();
+                Thread.currentThread().interrupt();
+            } catch (Exception cause) {
+                tryException(cause);
+            }
+        });
+        return this;
+    }
+
+    @Override
+    public Promise<V> execute(FutureFunction.FutureConsumer<Promise<V>> fn) {
+        return execute(self, fn);
+    }
+
+    @Override
+    public Promise<V> accept(ListenableFuture<V> target) {
+        return accept(self, target);
+    }
+
+    @Override
+    public Promise<V> accept(Executor executor, ListenableFuture<V> target) {
+        return target.assign(executor, this);
+    }
+
+    @Override
+    public Promise<V> acceptFail(ListenableFuture<?> target) {
+        return acceptFail(self, target);
+    }
+
+    @Override
+    public Promise<V> acceptFail(Executor executor, ListenableFuture<?> target) {
+        return target.assignFail(executor, this);
     }
 
     private V _get() throws ExecutionException {
@@ -237,29 +308,47 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
     public ListenableFuture<V> appendListener(Executor executor, FutureListener<V> listener) {
 
         // 将监听器封装为异步执行
-        final FutureListener<V> wrap = future -> {
+        final FutureListener<V> wrap = new FutureListener<V>() {
 
-            // 判断是否需要跳过当前listener
-            if (listener instanceof FutureListener.OnSuccess) {
-                if (!isSuccess()) {
-                    return;
+            @Override
+            public void onDone(ListenableFuture<V> future) {
+
+                // 判断是否需要跳过当前listener
+                if (listener instanceof FutureListener.OnSuccess) {
+                    if (!isSuccess()) {
+                        return;
+                    }
+                } else if (listener instanceof FutureListener.OnCancelled) {
+                    if (!isCancelled()) {
+                        return;
+                    }
+                } else if (listener instanceof FutureListener.OnException) {
+                    if (!isException()) {
+                        return;
+                    }
+                } else if (listener instanceof FutureListener.OnFailure) {
+                    if (!isException() && !isCancelled()) {
+                        return;
+                    }
                 }
-            } else if (listener instanceof FutureListener.OnCancelled) {
-                if (!isCancelled()) {
-                    return;
-                }
-            } else if (listener instanceof FutureListener.OnException) {
-                if (!isException()) {
-                    return;
-                }
-            } else if (listener instanceof FutureListener.OnFailure) {
-                if (!isException() && !isCancelled()) {
-                    return;
-                }
+
+                // 执行监听器
+                executor.execute(() -> interceptor.onListening(NotifiableFuture.this, listener));
+
             }
 
-            // 执行监听器
-            executor.execute(() -> interceptor.onListening(this, listener));
+            @Override
+            public int hashCode() {
+                return listener.hashCode();
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                if (!(obj instanceof FutureListener)) {
+                    return false;
+                }
+                return listener.equals(obj);
+            }
 
         };
 
@@ -279,9 +368,14 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
     }
 
     @Override
-    public ListenableFuture<V> removeListener(FutureListener<V> listener) {
+    public ListenableFuture<V> removeListener(FutureListener<V> target) {
         synchronized (this) {
-            notifies.remove(listener);
+            /*
+             * 因为notifies中存放的数据已经被wrap过了，
+             * 所以这里不能直接用remove
+             */
+            notifies.removeIf(listener ->
+                    listener.hashCode() == target.hashCode() && listener.equals(target));
         }
         return this;
     }
@@ -364,9 +458,19 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
 
     @Override
     public <P extends Promise<V>> P assign(Executor executor, P promise) {
+
+        /*
+         * 如果需要赋值的是他自己，则直接返回
+         * @since 1.0.1
+         */
+        if (this == promise) {
+            return promise;
+        }
+
         if (promise.isDone()) {
             return promise;
         }
+
         onDone(executor, future -> {
             if (future.isException()) {
                 promise.tryException(future.getException());
@@ -378,6 +482,33 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
                 throw new IllegalStateException();
             }
         });
+        return promise;
+    }
+
+    @Override
+    public <P extends Promise<?>> P assignFail(P promise) {
+        return assignFail(self, promise);
+    }
+
+    @Override
+    public <P extends Promise<?>> P assignFail(Executor executor, P promise) {
+
+        if (this == promise) {
+            return promise;
+        }
+
+        if (promise.isDone()) {
+            return promise;
+        }
+
+        onDone(executor, future -> {
+            if (future.isCancelled()) {
+                promise.tryCancel();
+            } else if (future.isException()) {
+                promise.tryException(future.getException());
+            }
+        });
+
         return promise;
     }
 }

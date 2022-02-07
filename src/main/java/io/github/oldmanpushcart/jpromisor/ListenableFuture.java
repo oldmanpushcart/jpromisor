@@ -65,6 +65,15 @@ import java.util.concurrent.Future;
 public interface ListenableFuture<V> extends Future<V> {
 
     /**
+     * 自身（无意义），强制返回指定的类型
+     *
+     * @param <F> 目标类型
+     * @return this
+     * @since 1.0.1
+     */
+    <F extends ListenableFuture<V>> F future();
+
+    /**
      * 是否失败
      *
      * @return TRUE | FALSE
@@ -106,6 +115,15 @@ public interface ListenableFuture<V> extends Future<V> {
      * @return 获取返回值
      */
     V getSuccess();
+
+    /**
+     * 将当前Future取消
+     *
+     * @param mayInterruptIfRunning 无效参数，不会尝试中断当前正在运行的线程
+     * @return TRUE | FALSE
+     */
+    @Override
+    boolean cancel(boolean mayInterruptIfRunning);
 
     /**
      * 同步等待结果
@@ -382,5 +400,26 @@ public interface ListenableFuture<V> extends Future<V> {
      * @return Promise
      */
     <P extends Promise<V>> P assign(Executor executor, P promise);
+
+    /**
+     * 当前Future的失败结果赋值给另外一个Promise
+     *
+     * @param promise Promise
+     * @param <P>     类型
+     * @return Promise
+     * @since 1.0.1
+     */
+    <P extends Promise<?>> P assignFail(P promise);
+
+    /**
+     * 当前Future的失败结果赋值给另外一个Promise
+     *
+     * @param executor 执行器
+     * @param promise  Promise
+     * @param <P>      类型
+     * @return Promise
+     * @since 1.0.1
+     */
+    <P extends Promise<?>> P assignFail(Executor executor, P promise);
 
 }
