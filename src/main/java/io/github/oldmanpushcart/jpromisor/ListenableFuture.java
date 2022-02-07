@@ -117,6 +117,15 @@ public interface ListenableFuture<V> extends Future<V> {
     V getSuccess();
 
     /**
+     * 将当前Future取消
+     *
+     * @param mayInterruptIfRunning 无效参数，不会尝试中断当前正在运行的线程
+     * @return TRUE | FALSE
+     */
+    @Override
+    boolean cancel(boolean mayInterruptIfRunning);
+
+    /**
      * 同步等待结果
      *
      * @return this
