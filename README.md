@@ -9,7 +9,7 @@ jPromisor是一个Java封装的Promise模式库，遵守[Promises/A+](https://gi
 <dependency>
     <groupId>io.github.oldmanpushcart.jpromisor</groupId>
     <artifactId>jpromisor</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 </dependency>
 ```
 
