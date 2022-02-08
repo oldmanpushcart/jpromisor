@@ -21,7 +21,7 @@ public interface Promise<V> extends ListenableFuture<V> {
      *
      * @param <P> 目标类型
      * @return this
-     * @since 1.0.1
+     * @since 1.1.0
      */
     <P extends Promise<V>> P promise();
 
@@ -69,7 +69,7 @@ public interface Promise<V> extends ListenableFuture<V> {
      *
      * @param fn 履约函数
      * @return Future
-     * @since 1.0.1
+     * @since 1.1.0
      */
     ListenableFuture<V> fulfill(FutureFunction.FutureCallable<V> fn);
 
@@ -79,7 +79,7 @@ public interface Promise<V> extends ListenableFuture<V> {
      * @param executor 执行器
      * @param fn       执行函数
      * @return this
-     * @since 1.0.1
+     * @since 1.1.0
      */
     Promise<V> execute(Executor executor, FutureFunction.FutureConsumer<Promise<V>> fn);
 
@@ -88,7 +88,7 @@ public interface Promise<V> extends ListenableFuture<V> {
      *
      * @param fn 执行函数
      * @return this
-     * @since 1.0.1
+     * @since 1.1.0
      */
     Promise<V> execute(FutureFunction.FutureConsumer<Promise<V>> fn);
 
@@ -97,7 +97,7 @@ public interface Promise<V> extends ListenableFuture<V> {
      *
      * @param future 目标Future
      * @return this
-     * @since 1.0.1
+     * @since 1.1.0
      */
     Promise<V> accept(ListenableFuture<V> future);
 
@@ -107,7 +107,7 @@ public interface Promise<V> extends ListenableFuture<V> {
      * @param executor 执行器
      * @param future   目标Future
      * @return this
-     * @since 1.0.1
+     * @since 1.1.0
      */
     Promise<V> accept(Executor executor, ListenableFuture<V> future);
 
@@ -116,7 +116,7 @@ public interface Promise<V> extends ListenableFuture<V> {
      *
      * @param future 目标Future
      * @return this
-     * @since 1.0.1
+     * @since 1.1.0
      */
     Promise<V> acceptFail(ListenableFuture<?> future);
 
@@ -126,7 +126,7 @@ public interface Promise<V> extends ListenableFuture<V> {
      * @param executor 执行器
      * @param future   目标Future
      * @return this
-     * @since 1.0.1
+     * @since 1.1.0
      */
     Promise<V> acceptFail(Executor executor, ListenableFuture<?> future);
 

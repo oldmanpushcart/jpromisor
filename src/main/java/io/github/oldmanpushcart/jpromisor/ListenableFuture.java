@@ -69,7 +69,7 @@ public interface ListenableFuture<V> extends Future<V> {
      *
      * @param <F> 目标类型
      * @return this
-     * @since 1.0.1
+     * @since 1.1.0
      */
     <F extends ListenableFuture<V>> F future();
 
@@ -407,7 +407,7 @@ public interface ListenableFuture<V> extends Future<V> {
      * @param promise Promise
      * @param <P>     类型
      * @return Promise
-     * @since 1.0.1
+     * @since 1.1.0
      */
     <P extends Promise<?>> P assignFail(P promise);
 
@@ -418,7 +418,7 @@ public interface ListenableFuture<V> extends Future<V> {
      * @param promise  Promise
      * @param <P>      类型
      * @return Promise
-     * @since 1.0.1
+     * @since 1.1.0
      */
     <P extends Promise<?>> P assignFail(Executor executor, P promise);
 

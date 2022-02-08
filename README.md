@@ -9,14 +9,14 @@ jPromisor是一个Java封装的Promise模式库，遵守[Promises/A+](https://gi
 <dependency>
     <groupId>io.github.oldmanpushcart.jpromisor</groupId>
     <artifactId>jpromisor</artifactId>
-    <version>1.0.1</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 
 ## Gradle
 
 ```
-compile 'io.github.oldmanpushcart.jpromisor:jpromisor:1.0.0' { transitive = true }
+compile 'io.github.oldmanpushcart.jpromisor:jpromisor:1.1.0' { transitive = true }
 ```
 
 ## 简单例子
@@ -104,3 +104,11 @@ Future结束时，最终持有3种状态：`CANCEL（取消）`、`EXCEPTION（�
 - **isException()：** 是否异常
 
   当Future异常时，`getException()`返回非空，为具体的异常实例
+
+## 版本号说明
+
+版本号码由 `大版本`.`小版本`.`修复版本` 组成
+
+- **大版本**：程序的架构设计进行重大升级或重大改造，大版本之间的API不承诺向下兼容。
+- **小版本**：增加新的API和接口，小版本之间保证向下兼容
+- **修复版本**：在不改变现有API和接口情况下，对漏洞修复和增强

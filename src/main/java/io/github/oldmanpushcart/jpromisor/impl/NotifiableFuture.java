@@ -52,7 +52,7 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
     /**
      * 可通知Future
      *
-     * @since 1.0.1
+     * @since 1.1.0
      */
     public NotifiableFuture() {
         this(null);
@@ -461,7 +461,7 @@ public class NotifiableFuture<V> extends StatefulFuture<V> implements Promise<V>
 
         /*
          * 如果需要赋值的是他自己，则直接返回
-         * @since 1.0.1
+         * @since 1.1.0
          */
         if (this == promise) {
             return promise;
