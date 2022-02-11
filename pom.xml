@@ -11,7 +11,8 @@
     <url>https://github.com/oldmanpushcart/jpromisor</url>
 
     <properties>
-        <java.version>1.8</java.version>
+        <jdk.version>8</jdk.version>
+        <module-name>org.slf4j</module-name>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
