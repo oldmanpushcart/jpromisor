@@ -5,7 +5,7 @@
     <groupId>io.github.oldmanpushcart.jpromisor</groupId>
     <artifactId>jpromisor</artifactId>
     <packaging>jar</packaging>
-    <version>1.1.1-SNAPSHOT</version>
+    <version>1.1.1</version>
     <name>jpromisor</name>
     <description>jpromisor is a promise lib write by java</description>
     <url>https://github.com/oldmanpushcart/jpromisor</url>
